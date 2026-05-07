@@ -13,8 +13,8 @@ dependencies:
     sdk: flutter
 
   # State Management
-  flutter_riverpod: ^2.6.1
-  riverpod_annotation: ^2.6.1
+  flutter_riverpod: ^3.3.1
+  riverpod_annotation: ^4.0.2
 
   # Datenbank
   drift: ^2.21.0
@@ -30,7 +30,7 @@ dependencies:
   slang_flutter: ^4.4.0
 
   # Datenklassen
-  freezed_annotation: ^2.4.4
+  freezed_annotation: ^3.1.0
   json_annotation: ^4.9.0
 
 dev_dependencies:
@@ -39,12 +39,14 @@ dev_dependencies:
   flutter_lints: ^5.0.0
 
   # Codegen
-  build_runner: ^2.4.13
+  build_runner: ^2.15.0
   drift_dev: ^2.21.0
-  riverpod_generator: ^2.6.1
-  freezed: ^2.5.7
+  riverpod_generator: ^4.0.3
+  freezed: ^3.2.5
   json_serializable: ^6.8.0
   slang_build_runner: ^4.4.0
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/i18n/

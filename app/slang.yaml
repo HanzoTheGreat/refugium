@@ -1,0 +1,4 @@
+base_locale: de
+input_directory: lib/i18n
+output_directory: lib/i18n
+output_file_name: translations.g.dart
