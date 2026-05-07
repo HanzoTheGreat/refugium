@@ -1,0 +1,50 @@
+name: refugium
+description: A safe space for people living with dissociative identity disorder.
+publish_to: 'none'
+version: 0.1.0+1
+
+environment:
+  sdk: '>=3.11.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+
+  # State Management
+  flutter_riverpod: ^2.6.1
+  riverpod_annotation: ^2.6.1
+
+  # Datenbank
+  drift: ^2.21.0
+  drift_flutter: ^0.2.4
+  sqlite3_flutter_libs: ^0.5.0
+
+  # Verschlüsselung & Sicherheit
+  flutter_secure_storage: ^9.2.2
+  local_auth: ^2.3.0
+
+  # i18n
+  slang: ^4.4.0
+  slang_flutter: ^4.4.0
+
+  # Datenklassen
+  freezed_annotation: ^2.4.4
+  json_annotation: ^4.9.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+  # Codegen
+  build_runner: ^2.4.13
+  drift_dev: ^2.21.0
+  riverpod_generator: ^2.6.1
+  freezed: ^2.5.7
+  json_serializable: ^6.8.0
+  slang_build_runner: ^4.4.0
+
+flutter:
+  uses-material-design: true
