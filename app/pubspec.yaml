@@ -33,6 +33,11 @@ dependencies:
   freezed_annotation: ^3.1.0
   json_annotation: ^4.9.0
 
+  # PDF Export
+  pdf: ^3.11.1
+  printing: ^5.13.2
+  path_provider: ^2.1.4
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/database/database.dart';
 import 'features/parts/screens/parts_screen.dart';
 import 'features/switch_tracker/screens/switch_tracker_screen.dart';
+import 'features/emergency_card/screens/emergency_card_screen.dart';
 
 final databaseProvider = Provider<AppDatabase>((ref) {
   final db = AppDatabase();
@@ -45,7 +46,11 @@ class MainShell extends StatefulWidget {
 class _MainShellState extends State<MainShell> {
   int _index = 0;
 
-  final _screens = const [SwitchTrackerScreen(), PartsScreen()];
+  final _screens = const [
+    SwitchTrackerScreen(),
+    PartsScreen(),
+    EmergencyCardScreen(),
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -57,6 +62,7 @@ class _MainShellState extends State<MainShell> {
         destinations: const [
           NavigationDestination(icon: Icon(Icons.swap_horiz), label: 'Jetzt'),
           NavigationDestination(icon: Icon(Icons.people), label: 'Anteile'),
+          NavigationDestination(icon: Icon(Icons.emergency), label: 'Notfall'),
         ],
       ),
     );

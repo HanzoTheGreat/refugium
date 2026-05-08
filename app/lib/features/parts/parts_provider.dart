@@ -3,15 +3,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/database/database.dart';
 import '../../main.dart';
 
-final partsProvider = AsyncNotifierProvider<PartsNotifier, List<PartsData>>(
+final partsProvider = StreamNotifierProvider<PartsNotifier, List<PartsData>>(
   PartsNotifier.new,
 );
 
-class PartsNotifier extends AsyncNotifier<List<PartsData>> {
+class PartsNotifier extends StreamNotifier<List<PartsData>> {
   @override
-  Future<List<PartsData>> build() async {
+  Stream<List<PartsData>> build() {
     final db = ref.watch(databaseProvider);
-    return db.select(db.parts).get();
+    return db.select(db.parts).watch();
   }
 
   Future<void> addPart({
@@ -35,13 +35,11 @@ class PartsNotifier extends AsyncNotifier<List<PartsData>> {
             descriptionExternal: Value(descriptionExternal),
           ),
         );
-    ref.invalidateSelf();
   }
 
   Future<void> updatePart(PartsData part) async {
     final db = ref.read(databaseProvider);
     await db.update(db.parts).replace(part);
-    ref.invalidateSelf();
   }
 
   Future<void> setPartStatus(String id, String status) async {
@@ -49,6 +47,5 @@ class PartsNotifier extends AsyncNotifier<List<PartsData>> {
     await (db.update(db.parts)..where((t) => t.id.equals(id))).write(
       PartsCompanion(status: Value(status)),
     );
-    ref.invalidateSelf();
   }
 }
