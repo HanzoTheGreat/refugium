@@ -1,6 +1,9 @@
 import 'package:drift/drift.dart';
 
 class Systems extends Table {
+  @override
+  String get tableName => 'systems';
+
   TextColumn get id => text().clientDefault(
     () => DateTime.now().millisecondsSinceEpoch.toString(),
   )();
@@ -16,6 +19,9 @@ class Systems extends Table {
 }
 
 class Parts extends Table {
+  @override
+  String get tableName => 'parts';
+
   TextColumn get id => text().clientDefault(
     () => DateTime.now().millisecondsSinceEpoch.toString(),
   )();
