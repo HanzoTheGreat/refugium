@@ -1682,12 +1682,735 @@ class SwitchEventsCompanion extends UpdateCompanion<SwitchEventsData> {
   }
 }
 
+class $ConsentProfilesTable extends ConsentProfiles
+    with TableInfo<$ConsentProfilesTable, ConsentProfileData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ConsentProfilesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _partIdMeta = const VerificationMeta('partId');
+  @override
+  late final GeneratedColumn<String> partId = GeneratedColumn<String>(
+    'part_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES parts (id)',
+    ),
+  );
+  static const VerificationMeta _touchGeneralMeta = const VerificationMeta(
+    'touchGeneral',
+  );
+  @override
+  late final GeneratedColumn<String> touchGeneral = GeneratedColumn<String>(
+    'touch_general',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('Unknown'),
+  );
+  static const VerificationMeta _touchIntimateMeta = const VerificationMeta(
+    'touchIntimate',
+  );
+  @override
+  late final GeneratedColumn<String> touchIntimate = GeneratedColumn<String>(
+    'touch_intimate',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('Unknown'),
+  );
+  static const VerificationMeta _kissMeta = const VerificationMeta('kiss');
+  @override
+  late final GeneratedColumn<String> kiss = GeneratedColumn<String>(
+    'kiss',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('Unknown'),
+  );
+  static const VerificationMeta _petNamesMeta = const VerificationMeta(
+    'petNames',
+  );
+  @override
+  late final GeneratedColumn<String> petNames = GeneratedColumn<String>(
+    'pet_names',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('Unknown'),
+  );
+  static const VerificationMeta _sexualActivityMeta = const VerificationMeta(
+    'sexualActivity',
+  );
+  @override
+  late final GeneratedColumn<String> sexualActivity = GeneratedColumn<String>(
+    'sexual_activity',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('Unknown'),
+  );
+  static const VerificationMeta _drivingMeta = const VerificationMeta(
+    'driving',
+  );
+  @override
+  late final GeneratedColumn<String> driving = GeneratedColumn<String>(
+    'driving',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('Unknown'),
+  );
+  static const VerificationMeta _alcoholMeta = const VerificationMeta(
+    'alcohol',
+  );
+  @override
+  late final GeneratedColumn<String> alcohol = GeneratedColumn<String>(
+    'alcohol',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('Unknown'),
+  );
+  static const VerificationMeta _decisionsFinancialMeta =
+      const VerificationMeta('decisionsFinancial');
+  @override
+  late final GeneratedColumn<String> decisionsFinancial =
+      GeneratedColumn<String>(
+        'decisions_financial',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+        defaultValue: const Constant('Unknown'),
+      );
+  static const VerificationMeta _decisionsMedicalMeta = const VerificationMeta(
+    'decisionsMedical',
+  );
+  @override
+  late final GeneratedColumn<String> decisionsMedical = GeneratedColumn<String>(
+    'decisions_medical',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('Unknown'),
+  );
+  static const VerificationMeta _notesMeta = const VerificationMeta('notes');
+  @override
+  late final GeneratedColumn<String> notes = GeneratedColumn<String>(
+    'notes',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _lastReviewedMeta = const VerificationMeta(
+    'lastReviewed',
+  );
+  @override
+  late final GeneratedColumn<DateTime> lastReviewed = GeneratedColumn<DateTime>(
+    'last_reviewed',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    partId,
+    touchGeneral,
+    touchIntimate,
+    kiss,
+    petNames,
+    sexualActivity,
+    driving,
+    alcohol,
+    decisionsFinancial,
+    decisionsMedical,
+    notes,
+    lastReviewed,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'consent_profiles';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<ConsentProfileData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('part_id')) {
+      context.handle(
+        _partIdMeta,
+        partId.isAcceptableOrUnknown(data['part_id']!, _partIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_partIdMeta);
+    }
+    if (data.containsKey('touch_general')) {
+      context.handle(
+        _touchGeneralMeta,
+        touchGeneral.isAcceptableOrUnknown(
+          data['touch_general']!,
+          _touchGeneralMeta,
+        ),
+      );
+    }
+    if (data.containsKey('touch_intimate')) {
+      context.handle(
+        _touchIntimateMeta,
+        touchIntimate.isAcceptableOrUnknown(
+          data['touch_intimate']!,
+          _touchIntimateMeta,
+        ),
+      );
+    }
+    if (data.containsKey('kiss')) {
+      context.handle(
+        _kissMeta,
+        kiss.isAcceptableOrUnknown(data['kiss']!, _kissMeta),
+      );
+    }
+    if (data.containsKey('pet_names')) {
+      context.handle(
+        _petNamesMeta,
+        petNames.isAcceptableOrUnknown(data['pet_names']!, _petNamesMeta),
+      );
+    }
+    if (data.containsKey('sexual_activity')) {
+      context.handle(
+        _sexualActivityMeta,
+        sexualActivity.isAcceptableOrUnknown(
+          data['sexual_activity']!,
+          _sexualActivityMeta,
+        ),
+      );
+    }
+    if (data.containsKey('driving')) {
+      context.handle(
+        _drivingMeta,
+        driving.isAcceptableOrUnknown(data['driving']!, _drivingMeta),
+      );
+    }
+    if (data.containsKey('alcohol')) {
+      context.handle(
+        _alcoholMeta,
+        alcohol.isAcceptableOrUnknown(data['alcohol']!, _alcoholMeta),
+      );
+    }
+    if (data.containsKey('decisions_financial')) {
+      context.handle(
+        _decisionsFinancialMeta,
+        decisionsFinancial.isAcceptableOrUnknown(
+          data['decisions_financial']!,
+          _decisionsFinancialMeta,
+        ),
+      );
+    }
+    if (data.containsKey('decisions_medical')) {
+      context.handle(
+        _decisionsMedicalMeta,
+        decisionsMedical.isAcceptableOrUnknown(
+          data['decisions_medical']!,
+          _decisionsMedicalMeta,
+        ),
+      );
+    }
+    if (data.containsKey('notes')) {
+      context.handle(
+        _notesMeta,
+        notes.isAcceptableOrUnknown(data['notes']!, _notesMeta),
+      );
+    }
+    if (data.containsKey('last_reviewed')) {
+      context.handle(
+        _lastReviewedMeta,
+        lastReviewed.isAcceptableOrUnknown(
+          data['last_reviewed']!,
+          _lastReviewedMeta,
+        ),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {partId};
+  @override
+  ConsentProfileData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ConsentProfileData(
+      partId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}part_id'],
+      )!,
+      touchGeneral: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}touch_general'],
+      )!,
+      touchIntimate: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}touch_intimate'],
+      )!,
+      kiss: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}kiss'],
+      )!,
+      petNames: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}pet_names'],
+      )!,
+      sexualActivity: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}sexual_activity'],
+      )!,
+      driving: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}driving'],
+      )!,
+      alcohol: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}alcohol'],
+      )!,
+      decisionsFinancial: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}decisions_financial'],
+      )!,
+      decisionsMedical: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}decisions_medical'],
+      )!,
+      notes: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}notes'],
+      ),
+      lastReviewed: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}last_reviewed'],
+      )!,
+    );
+  }
+
+  @override
+  $ConsentProfilesTable createAlias(String alias) {
+    return $ConsentProfilesTable(attachedDatabase, alias);
+  }
+}
+
+class ConsentProfileData extends DataClass
+    implements Insertable<ConsentProfileData> {
+  final String partId;
+  final String touchGeneral;
+  final String touchIntimate;
+  final String kiss;
+  final String petNames;
+  final String sexualActivity;
+  final String driving;
+  final String alcohol;
+  final String decisionsFinancial;
+  final String decisionsMedical;
+  final String? notes;
+  final DateTime lastReviewed;
+  const ConsentProfileData({
+    required this.partId,
+    required this.touchGeneral,
+    required this.touchIntimate,
+    required this.kiss,
+    required this.petNames,
+    required this.sexualActivity,
+    required this.driving,
+    required this.alcohol,
+    required this.decisionsFinancial,
+    required this.decisionsMedical,
+    this.notes,
+    required this.lastReviewed,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['part_id'] = Variable<String>(partId);
+    map['touch_general'] = Variable<String>(touchGeneral);
+    map['touch_intimate'] = Variable<String>(touchIntimate);
+    map['kiss'] = Variable<String>(kiss);
+    map['pet_names'] = Variable<String>(petNames);
+    map['sexual_activity'] = Variable<String>(sexualActivity);
+    map['driving'] = Variable<String>(driving);
+    map['alcohol'] = Variable<String>(alcohol);
+    map['decisions_financial'] = Variable<String>(decisionsFinancial);
+    map['decisions_medical'] = Variable<String>(decisionsMedical);
+    if (!nullToAbsent || notes != null) {
+      map['notes'] = Variable<String>(notes);
+    }
+    map['last_reviewed'] = Variable<DateTime>(lastReviewed);
+    return map;
+  }
+
+  ConsentProfilesCompanion toCompanion(bool nullToAbsent) {
+    return ConsentProfilesCompanion(
+      partId: Value(partId),
+      touchGeneral: Value(touchGeneral),
+      touchIntimate: Value(touchIntimate),
+      kiss: Value(kiss),
+      petNames: Value(petNames),
+      sexualActivity: Value(sexualActivity),
+      driving: Value(driving),
+      alcohol: Value(alcohol),
+      decisionsFinancial: Value(decisionsFinancial),
+      decisionsMedical: Value(decisionsMedical),
+      notes: notes == null && nullToAbsent
+          ? const Value.absent()
+          : Value(notes),
+      lastReviewed: Value(lastReviewed),
+    );
+  }
+
+  factory ConsentProfileData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ConsentProfileData(
+      partId: serializer.fromJson<String>(json['partId']),
+      touchGeneral: serializer.fromJson<String>(json['touchGeneral']),
+      touchIntimate: serializer.fromJson<String>(json['touchIntimate']),
+      kiss: serializer.fromJson<String>(json['kiss']),
+      petNames: serializer.fromJson<String>(json['petNames']),
+      sexualActivity: serializer.fromJson<String>(json['sexualActivity']),
+      driving: serializer.fromJson<String>(json['driving']),
+      alcohol: serializer.fromJson<String>(json['alcohol']),
+      decisionsFinancial: serializer.fromJson<String>(
+        json['decisionsFinancial'],
+      ),
+      decisionsMedical: serializer.fromJson<String>(json['decisionsMedical']),
+      notes: serializer.fromJson<String?>(json['notes']),
+      lastReviewed: serializer.fromJson<DateTime>(json['lastReviewed']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'partId': serializer.toJson<String>(partId),
+      'touchGeneral': serializer.toJson<String>(touchGeneral),
+      'touchIntimate': serializer.toJson<String>(touchIntimate),
+      'kiss': serializer.toJson<String>(kiss),
+      'petNames': serializer.toJson<String>(petNames),
+      'sexualActivity': serializer.toJson<String>(sexualActivity),
+      'driving': serializer.toJson<String>(driving),
+      'alcohol': serializer.toJson<String>(alcohol),
+      'decisionsFinancial': serializer.toJson<String>(decisionsFinancial),
+      'decisionsMedical': serializer.toJson<String>(decisionsMedical),
+      'notes': serializer.toJson<String?>(notes),
+      'lastReviewed': serializer.toJson<DateTime>(lastReviewed),
+    };
+  }
+
+  ConsentProfileData copyWith({
+    String? partId,
+    String? touchGeneral,
+    String? touchIntimate,
+    String? kiss,
+    String? petNames,
+    String? sexualActivity,
+    String? driving,
+    String? alcohol,
+    String? decisionsFinancial,
+    String? decisionsMedical,
+    Value<String?> notes = const Value.absent(),
+    DateTime? lastReviewed,
+  }) => ConsentProfileData(
+    partId: partId ?? this.partId,
+    touchGeneral: touchGeneral ?? this.touchGeneral,
+    touchIntimate: touchIntimate ?? this.touchIntimate,
+    kiss: kiss ?? this.kiss,
+    petNames: petNames ?? this.petNames,
+    sexualActivity: sexualActivity ?? this.sexualActivity,
+    driving: driving ?? this.driving,
+    alcohol: alcohol ?? this.alcohol,
+    decisionsFinancial: decisionsFinancial ?? this.decisionsFinancial,
+    decisionsMedical: decisionsMedical ?? this.decisionsMedical,
+    notes: notes.present ? notes.value : this.notes,
+    lastReviewed: lastReviewed ?? this.lastReviewed,
+  );
+  ConsentProfileData copyWithCompanion(ConsentProfilesCompanion data) {
+    return ConsentProfileData(
+      partId: data.partId.present ? data.partId.value : this.partId,
+      touchGeneral: data.touchGeneral.present
+          ? data.touchGeneral.value
+          : this.touchGeneral,
+      touchIntimate: data.touchIntimate.present
+          ? data.touchIntimate.value
+          : this.touchIntimate,
+      kiss: data.kiss.present ? data.kiss.value : this.kiss,
+      petNames: data.petNames.present ? data.petNames.value : this.petNames,
+      sexualActivity: data.sexualActivity.present
+          ? data.sexualActivity.value
+          : this.sexualActivity,
+      driving: data.driving.present ? data.driving.value : this.driving,
+      alcohol: data.alcohol.present ? data.alcohol.value : this.alcohol,
+      decisionsFinancial: data.decisionsFinancial.present
+          ? data.decisionsFinancial.value
+          : this.decisionsFinancial,
+      decisionsMedical: data.decisionsMedical.present
+          ? data.decisionsMedical.value
+          : this.decisionsMedical,
+      notes: data.notes.present ? data.notes.value : this.notes,
+      lastReviewed: data.lastReviewed.present
+          ? data.lastReviewed.value
+          : this.lastReviewed,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ConsentProfileData(')
+          ..write('partId: $partId, ')
+          ..write('touchGeneral: $touchGeneral, ')
+          ..write('touchIntimate: $touchIntimate, ')
+          ..write('kiss: $kiss, ')
+          ..write('petNames: $petNames, ')
+          ..write('sexualActivity: $sexualActivity, ')
+          ..write('driving: $driving, ')
+          ..write('alcohol: $alcohol, ')
+          ..write('decisionsFinancial: $decisionsFinancial, ')
+          ..write('decisionsMedical: $decisionsMedical, ')
+          ..write('notes: $notes, ')
+          ..write('lastReviewed: $lastReviewed')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    partId,
+    touchGeneral,
+    touchIntimate,
+    kiss,
+    petNames,
+    sexualActivity,
+    driving,
+    alcohol,
+    decisionsFinancial,
+    decisionsMedical,
+    notes,
+    lastReviewed,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ConsentProfileData &&
+          other.partId == this.partId &&
+          other.touchGeneral == this.touchGeneral &&
+          other.touchIntimate == this.touchIntimate &&
+          other.kiss == this.kiss &&
+          other.petNames == this.petNames &&
+          other.sexualActivity == this.sexualActivity &&
+          other.driving == this.driving &&
+          other.alcohol == this.alcohol &&
+          other.decisionsFinancial == this.decisionsFinancial &&
+          other.decisionsMedical == this.decisionsMedical &&
+          other.notes == this.notes &&
+          other.lastReviewed == this.lastReviewed);
+}
+
+class ConsentProfilesCompanion extends UpdateCompanion<ConsentProfileData> {
+  final Value<String> partId;
+  final Value<String> touchGeneral;
+  final Value<String> touchIntimate;
+  final Value<String> kiss;
+  final Value<String> petNames;
+  final Value<String> sexualActivity;
+  final Value<String> driving;
+  final Value<String> alcohol;
+  final Value<String> decisionsFinancial;
+  final Value<String> decisionsMedical;
+  final Value<String?> notes;
+  final Value<DateTime> lastReviewed;
+  final Value<int> rowid;
+  const ConsentProfilesCompanion({
+    this.partId = const Value.absent(),
+    this.touchGeneral = const Value.absent(),
+    this.touchIntimate = const Value.absent(),
+    this.kiss = const Value.absent(),
+    this.petNames = const Value.absent(),
+    this.sexualActivity = const Value.absent(),
+    this.driving = const Value.absent(),
+    this.alcohol = const Value.absent(),
+    this.decisionsFinancial = const Value.absent(),
+    this.decisionsMedical = const Value.absent(),
+    this.notes = const Value.absent(),
+    this.lastReviewed = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  ConsentProfilesCompanion.insert({
+    required String partId,
+    this.touchGeneral = const Value.absent(),
+    this.touchIntimate = const Value.absent(),
+    this.kiss = const Value.absent(),
+    this.petNames = const Value.absent(),
+    this.sexualActivity = const Value.absent(),
+    this.driving = const Value.absent(),
+    this.alcohol = const Value.absent(),
+    this.decisionsFinancial = const Value.absent(),
+    this.decisionsMedical = const Value.absent(),
+    this.notes = const Value.absent(),
+    this.lastReviewed = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : partId = Value(partId);
+  static Insertable<ConsentProfileData> custom({
+    Expression<String>? partId,
+    Expression<String>? touchGeneral,
+    Expression<String>? touchIntimate,
+    Expression<String>? kiss,
+    Expression<String>? petNames,
+    Expression<String>? sexualActivity,
+    Expression<String>? driving,
+    Expression<String>? alcohol,
+    Expression<String>? decisionsFinancial,
+    Expression<String>? decisionsMedical,
+    Expression<String>? notes,
+    Expression<DateTime>? lastReviewed,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (partId != null) 'part_id': partId,
+      if (touchGeneral != null) 'touch_general': touchGeneral,
+      if (touchIntimate != null) 'touch_intimate': touchIntimate,
+      if (kiss != null) 'kiss': kiss,
+      if (petNames != null) 'pet_names': petNames,
+      if (sexualActivity != null) 'sexual_activity': sexualActivity,
+      if (driving != null) 'driving': driving,
+      if (alcohol != null) 'alcohol': alcohol,
+      if (decisionsFinancial != null) 'decisions_financial': decisionsFinancial,
+      if (decisionsMedical != null) 'decisions_medical': decisionsMedical,
+      if (notes != null) 'notes': notes,
+      if (lastReviewed != null) 'last_reviewed': lastReviewed,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  ConsentProfilesCompanion copyWith({
+    Value<String>? partId,
+    Value<String>? touchGeneral,
+    Value<String>? touchIntimate,
+    Value<String>? kiss,
+    Value<String>? petNames,
+    Value<String>? sexualActivity,
+    Value<String>? driving,
+    Value<String>? alcohol,
+    Value<String>? decisionsFinancial,
+    Value<String>? decisionsMedical,
+    Value<String?>? notes,
+    Value<DateTime>? lastReviewed,
+    Value<int>? rowid,
+  }) {
+    return ConsentProfilesCompanion(
+      partId: partId ?? this.partId,
+      touchGeneral: touchGeneral ?? this.touchGeneral,
+      touchIntimate: touchIntimate ?? this.touchIntimate,
+      kiss: kiss ?? this.kiss,
+      petNames: petNames ?? this.petNames,
+      sexualActivity: sexualActivity ?? this.sexualActivity,
+      driving: driving ?? this.driving,
+      alcohol: alcohol ?? this.alcohol,
+      decisionsFinancial: decisionsFinancial ?? this.decisionsFinancial,
+      decisionsMedical: decisionsMedical ?? this.decisionsMedical,
+      notes: notes ?? this.notes,
+      lastReviewed: lastReviewed ?? this.lastReviewed,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (partId.present) {
+      map['part_id'] = Variable<String>(partId.value);
+    }
+    if (touchGeneral.present) {
+      map['touch_general'] = Variable<String>(touchGeneral.value);
+    }
+    if (touchIntimate.present) {
+      map['touch_intimate'] = Variable<String>(touchIntimate.value);
+    }
+    if (kiss.present) {
+      map['kiss'] = Variable<String>(kiss.value);
+    }
+    if (petNames.present) {
+      map['pet_names'] = Variable<String>(petNames.value);
+    }
+    if (sexualActivity.present) {
+      map['sexual_activity'] = Variable<String>(sexualActivity.value);
+    }
+    if (driving.present) {
+      map['driving'] = Variable<String>(driving.value);
+    }
+    if (alcohol.present) {
+      map['alcohol'] = Variable<String>(alcohol.value);
+    }
+    if (decisionsFinancial.present) {
+      map['decisions_financial'] = Variable<String>(decisionsFinancial.value);
+    }
+    if (decisionsMedical.present) {
+      map['decisions_medical'] = Variable<String>(decisionsMedical.value);
+    }
+    if (notes.present) {
+      map['notes'] = Variable<String>(notes.value);
+    }
+    if (lastReviewed.present) {
+      map['last_reviewed'] = Variable<DateTime>(lastReviewed.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ConsentProfilesCompanion(')
+          ..write('partId: $partId, ')
+          ..write('touchGeneral: $touchGeneral, ')
+          ..write('touchIntimate: $touchIntimate, ')
+          ..write('kiss: $kiss, ')
+          ..write('petNames: $petNames, ')
+          ..write('sexualActivity: $sexualActivity, ')
+          ..write('driving: $driving, ')
+          ..write('alcohol: $alcohol, ')
+          ..write('decisionsFinancial: $decisionsFinancial, ')
+          ..write('decisionsMedical: $decisionsMedical, ')
+          ..write('notes: $notes, ')
+          ..write('lastReviewed: $lastReviewed, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
   late final $SystemsTable systems = $SystemsTable(this);
   late final $PartsTable parts = $PartsTable(this);
   late final $SwitchEventsTable switchEvents = $SwitchEventsTable(this);
+  late final $ConsentProfilesTable consentProfiles = $ConsentProfilesTable(
+    this,
+  );
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -1696,6 +2419,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     systems,
     parts,
     switchEvents,
+    consentProfiles,
   ];
 }
 
@@ -1978,6 +2702,26 @@ final class $$PartsTableReferences
       manager.$state.copyWith(prefetchedData: cache),
     );
   }
+
+  static MultiTypedResultKey<$ConsentProfilesTable, List<ConsentProfileData>>
+  _consentProfilesRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.consentProfiles,
+    aliasName: $_aliasNameGenerator(db.parts.id, db.consentProfiles.partId),
+  );
+
+  $$ConsentProfilesTableProcessedTableManager get consentProfilesRefs {
+    final manager = $$ConsentProfilesTableTableManager(
+      $_db,
+      $_db.consentProfiles,
+    ).filter((f) => f.partId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _consentProfilesRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
 }
 
 class $$PartsTableFilterComposer extends Composer<_$AppDatabase, $PartsTable> {
@@ -2074,6 +2818,31 @@ class $$PartsTableFilterComposer extends Composer<_$AppDatabase, $PartsTable> {
           }) => $$SwitchEventsTableFilterComposer(
             $db: $db,
             $table: $db.switchEvents,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> consentProfilesRefs(
+    Expression<bool> Function($$ConsentProfilesTableFilterComposer f) f,
+  ) {
+    final $$ConsentProfilesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.consentProfiles,
+      getReferencedColumn: (t) => t.partId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ConsentProfilesTableFilterComposer(
+            $db: $db,
+            $table: $db.consentProfiles,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -2253,6 +3022,31 @@ class $$PartsTableAnnotationComposer
     );
     return f(composer);
   }
+
+  Expression<T> consentProfilesRefs<T extends Object>(
+    Expression<T> Function($$ConsentProfilesTableAnnotationComposer a) f,
+  ) {
+    final $$ConsentProfilesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.consentProfiles,
+      getReferencedColumn: (t) => t.partId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ConsentProfilesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.consentProfiles,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$PartsTableTableManager
@@ -2268,7 +3062,10 @@ class $$PartsTableTableManager
           $$PartsTableUpdateCompanionBuilder,
           (PartsData, $$PartsTableReferences),
           PartsData,
-          PrefetchHooks Function({bool switchEventsRefs})
+          PrefetchHooks Function({
+            bool switchEventsRefs,
+            bool consentProfilesRefs,
+          })
         > {
   $$PartsTableTableManager(_$AppDatabase db, $PartsTable table)
     : super(
@@ -2355,35 +3152,63 @@ class $$PartsTableTableManager
                     (e.readTable(table), $$PartsTableReferences(db, table, e)),
               )
               .toList(),
-          prefetchHooksCallback: ({switchEventsRefs = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [if (switchEventsRefs) db.switchEvents],
-              addJoins: null,
-              getPrefetchedDataCallback: (items) async {
-                return [
-                  if (switchEventsRefs)
-                    await $_getPrefetchedData<
-                      PartsData,
-                      $PartsTable,
-                      SwitchEventsData
-                    >(
-                      currentTable: table,
-                      referencedTable: $$PartsTableReferences
-                          ._switchEventsRefsTable(db),
-                      managerFromTypedResult: (p0) => $$PartsTableReferences(
-                        db,
-                        table,
-                        p0,
-                      ).switchEventsRefs,
-                      referencedItemsForCurrentItem: (item, referencedItems) =>
-                          referencedItems.where((e) => e.partId == item.id),
-                      typedResults: items,
-                    ),
-                ];
+          prefetchHooksCallback:
+              ({switchEventsRefs = false, consentProfilesRefs = false}) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (switchEventsRefs) db.switchEvents,
+                    if (consentProfilesRefs) db.consentProfiles,
+                  ],
+                  addJoins: null,
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (switchEventsRefs)
+                        await $_getPrefetchedData<
+                          PartsData,
+                          $PartsTable,
+                          SwitchEventsData
+                        >(
+                          currentTable: table,
+                          referencedTable: $$PartsTableReferences
+                              ._switchEventsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$PartsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).switchEventsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.partId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (consentProfilesRefs)
+                        await $_getPrefetchedData<
+                          PartsData,
+                          $PartsTable,
+                          ConsentProfileData
+                        >(
+                          currentTable: table,
+                          referencedTable: $$PartsTableReferences
+                              ._consentProfilesRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$PartsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).consentProfilesRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.partId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
               },
-            );
-          },
         ),
       );
 }
@@ -2400,7 +3225,7 @@ typedef $$PartsTableProcessedTableManager =
       $$PartsTableUpdateCompanionBuilder,
       (PartsData, $$PartsTableReferences),
       PartsData,
-      PrefetchHooks Function({bool switchEventsRefs})
+      PrefetchHooks Function({bool switchEventsRefs, bool consentProfilesRefs})
     >;
 typedef $$SwitchEventsTableCreateCompanionBuilder =
     SwitchEventsCompanion Function({
@@ -2742,6 +3567,482 @@ typedef $$SwitchEventsTableProcessedTableManager =
       SwitchEventsData,
       PrefetchHooks Function({bool partId})
     >;
+typedef $$ConsentProfilesTableCreateCompanionBuilder =
+    ConsentProfilesCompanion Function({
+      required String partId,
+      Value<String> touchGeneral,
+      Value<String> touchIntimate,
+      Value<String> kiss,
+      Value<String> petNames,
+      Value<String> sexualActivity,
+      Value<String> driving,
+      Value<String> alcohol,
+      Value<String> decisionsFinancial,
+      Value<String> decisionsMedical,
+      Value<String?> notes,
+      Value<DateTime> lastReviewed,
+      Value<int> rowid,
+    });
+typedef $$ConsentProfilesTableUpdateCompanionBuilder =
+    ConsentProfilesCompanion Function({
+      Value<String> partId,
+      Value<String> touchGeneral,
+      Value<String> touchIntimate,
+      Value<String> kiss,
+      Value<String> petNames,
+      Value<String> sexualActivity,
+      Value<String> driving,
+      Value<String> alcohol,
+      Value<String> decisionsFinancial,
+      Value<String> decisionsMedical,
+      Value<String?> notes,
+      Value<DateTime> lastReviewed,
+      Value<int> rowid,
+    });
+
+final class $$ConsentProfilesTableReferences
+    extends
+        BaseReferences<
+          _$AppDatabase,
+          $ConsentProfilesTable,
+          ConsentProfileData
+        > {
+  $$ConsentProfilesTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $PartsTable _partIdTable(_$AppDatabase db) => db.parts.createAlias(
+    $_aliasNameGenerator(db.consentProfiles.partId, db.parts.id),
+  );
+
+  $$PartsTableProcessedTableManager get partId {
+    final $_column = $_itemColumn<String>('part_id')!;
+
+    final manager = $$PartsTableTableManager(
+      $_db,
+      $_db.parts,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_partIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$ConsentProfilesTableFilterComposer
+    extends Composer<_$AppDatabase, $ConsentProfilesTable> {
+  $$ConsentProfilesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get touchGeneral => $composableBuilder(
+    column: $table.touchGeneral,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get touchIntimate => $composableBuilder(
+    column: $table.touchIntimate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get kiss => $composableBuilder(
+    column: $table.kiss,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get petNames => $composableBuilder(
+    column: $table.petNames,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get sexualActivity => $composableBuilder(
+    column: $table.sexualActivity,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get driving => $composableBuilder(
+    column: $table.driving,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get alcohol => $composableBuilder(
+    column: $table.alcohol,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get decisionsFinancial => $composableBuilder(
+    column: $table.decisionsFinancial,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get decisionsMedical => $composableBuilder(
+    column: $table.decisionsMedical,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get notes => $composableBuilder(
+    column: $table.notes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get lastReviewed => $composableBuilder(
+    column: $table.lastReviewed,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$PartsTableFilterComposer get partId {
+    final $$PartsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.partId,
+      referencedTable: $db.parts,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$PartsTableFilterComposer(
+            $db: $db,
+            $table: $db.parts,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$ConsentProfilesTableOrderingComposer
+    extends Composer<_$AppDatabase, $ConsentProfilesTable> {
+  $$ConsentProfilesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get touchGeneral => $composableBuilder(
+    column: $table.touchGeneral,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get touchIntimate => $composableBuilder(
+    column: $table.touchIntimate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get kiss => $composableBuilder(
+    column: $table.kiss,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get petNames => $composableBuilder(
+    column: $table.petNames,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get sexualActivity => $composableBuilder(
+    column: $table.sexualActivity,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get driving => $composableBuilder(
+    column: $table.driving,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get alcohol => $composableBuilder(
+    column: $table.alcohol,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get decisionsFinancial => $composableBuilder(
+    column: $table.decisionsFinancial,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get decisionsMedical => $composableBuilder(
+    column: $table.decisionsMedical,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get notes => $composableBuilder(
+    column: $table.notes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get lastReviewed => $composableBuilder(
+    column: $table.lastReviewed,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$PartsTableOrderingComposer get partId {
+    final $$PartsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.partId,
+      referencedTable: $db.parts,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$PartsTableOrderingComposer(
+            $db: $db,
+            $table: $db.parts,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$ConsentProfilesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $ConsentProfilesTable> {
+  $$ConsentProfilesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get touchGeneral => $composableBuilder(
+    column: $table.touchGeneral,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get touchIntimate => $composableBuilder(
+    column: $table.touchIntimate,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get kiss =>
+      $composableBuilder(column: $table.kiss, builder: (column) => column);
+
+  GeneratedColumn<String> get petNames =>
+      $composableBuilder(column: $table.petNames, builder: (column) => column);
+
+  GeneratedColumn<String> get sexualActivity => $composableBuilder(
+    column: $table.sexualActivity,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get driving =>
+      $composableBuilder(column: $table.driving, builder: (column) => column);
+
+  GeneratedColumn<String> get alcohol =>
+      $composableBuilder(column: $table.alcohol, builder: (column) => column);
+
+  GeneratedColumn<String> get decisionsFinancial => $composableBuilder(
+    column: $table.decisionsFinancial,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get decisionsMedical => $composableBuilder(
+    column: $table.decisionsMedical,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get notes =>
+      $composableBuilder(column: $table.notes, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get lastReviewed => $composableBuilder(
+    column: $table.lastReviewed,
+    builder: (column) => column,
+  );
+
+  $$PartsTableAnnotationComposer get partId {
+    final $$PartsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.partId,
+      referencedTable: $db.parts,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$PartsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.parts,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$ConsentProfilesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $ConsentProfilesTable,
+          ConsentProfileData,
+          $$ConsentProfilesTableFilterComposer,
+          $$ConsentProfilesTableOrderingComposer,
+          $$ConsentProfilesTableAnnotationComposer,
+          $$ConsentProfilesTableCreateCompanionBuilder,
+          $$ConsentProfilesTableUpdateCompanionBuilder,
+          (ConsentProfileData, $$ConsentProfilesTableReferences),
+          ConsentProfileData,
+          PrefetchHooks Function({bool partId})
+        > {
+  $$ConsentProfilesTableTableManager(
+    _$AppDatabase db,
+    $ConsentProfilesTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$ConsentProfilesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$ConsentProfilesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$ConsentProfilesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> partId = const Value.absent(),
+                Value<String> touchGeneral = const Value.absent(),
+                Value<String> touchIntimate = const Value.absent(),
+                Value<String> kiss = const Value.absent(),
+                Value<String> petNames = const Value.absent(),
+                Value<String> sexualActivity = const Value.absent(),
+                Value<String> driving = const Value.absent(),
+                Value<String> alcohol = const Value.absent(),
+                Value<String> decisionsFinancial = const Value.absent(),
+                Value<String> decisionsMedical = const Value.absent(),
+                Value<String?> notes = const Value.absent(),
+                Value<DateTime> lastReviewed = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => ConsentProfilesCompanion(
+                partId: partId,
+                touchGeneral: touchGeneral,
+                touchIntimate: touchIntimate,
+                kiss: kiss,
+                petNames: petNames,
+                sexualActivity: sexualActivity,
+                driving: driving,
+                alcohol: alcohol,
+                decisionsFinancial: decisionsFinancial,
+                decisionsMedical: decisionsMedical,
+                notes: notes,
+                lastReviewed: lastReviewed,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String partId,
+                Value<String> touchGeneral = const Value.absent(),
+                Value<String> touchIntimate = const Value.absent(),
+                Value<String> kiss = const Value.absent(),
+                Value<String> petNames = const Value.absent(),
+                Value<String> sexualActivity = const Value.absent(),
+                Value<String> driving = const Value.absent(),
+                Value<String> alcohol = const Value.absent(),
+                Value<String> decisionsFinancial = const Value.absent(),
+                Value<String> decisionsMedical = const Value.absent(),
+                Value<String?> notes = const Value.absent(),
+                Value<DateTime> lastReviewed = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => ConsentProfilesCompanion.insert(
+                partId: partId,
+                touchGeneral: touchGeneral,
+                touchIntimate: touchIntimate,
+                kiss: kiss,
+                petNames: petNames,
+                sexualActivity: sexualActivity,
+                driving: driving,
+                alcohol: alcohol,
+                decisionsFinancial: decisionsFinancial,
+                decisionsMedical: decisionsMedical,
+                notes: notes,
+                lastReviewed: lastReviewed,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$ConsentProfilesTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({partId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (partId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.partId,
+                                referencedTable:
+                                    $$ConsentProfilesTableReferences
+                                        ._partIdTable(db),
+                                referencedColumn:
+                                    $$ConsentProfilesTableReferences
+                                        ._partIdTable(db)
+                                        .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$ConsentProfilesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $ConsentProfilesTable,
+      ConsentProfileData,
+      $$ConsentProfilesTableFilterComposer,
+      $$ConsentProfilesTableOrderingComposer,
+      $$ConsentProfilesTableAnnotationComposer,
+      $$ConsentProfilesTableCreateCompanionBuilder,
+      $$ConsentProfilesTableUpdateCompanionBuilder,
+      (ConsentProfileData, $$ConsentProfilesTableReferences),
+      ConsentProfileData,
+      PrefetchHooks Function({bool partId})
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -2752,4 +4053,6 @@ class $AppDatabaseManager {
       $$PartsTableTableManager(_db, _db.parts);
   $$SwitchEventsTableTableManager get switchEvents =>
       $$SwitchEventsTableTableManager(_db, _db.switchEvents);
+  $$ConsentProfilesTableTableManager get consentProfiles =>
+      $$ConsentProfilesTableTableManager(_db, _db.consentProfiles);
 }

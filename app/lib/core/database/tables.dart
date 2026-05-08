@@ -62,3 +62,34 @@ class SwitchEvents extends Table {
   @override
   Set<Column> get primaryKey => {id};
 }
+
+@DataClassName('ConsentProfileData')
+class ConsentProfiles extends Table {
+  @override
+  String get tableName => 'consent_profiles';
+
+  TextColumn get partId => text().references(Parts, #id)();
+
+  TextColumn get touchGeneral =>
+      text().withDefault(const Constant('Unknown'))();
+  TextColumn get touchIntimate =>
+      text().withDefault(const Constant('Unknown'))();
+  TextColumn get kiss => text().withDefault(const Constant('Unknown'))();
+  TextColumn get petNames => text().withDefault(const Constant('Unknown'))();
+  TextColumn get sexualActivity =>
+      text().withDefault(const Constant('Unknown'))();
+
+  TextColumn get driving => text().withDefault(const Constant('Unknown'))();
+  TextColumn get alcohol => text().withDefault(const Constant('Unknown'))();
+  TextColumn get decisionsFinancial =>
+      text().withDefault(const Constant('Unknown'))();
+  TextColumn get decisionsMedical =>
+      text().withDefault(const Constant('Unknown'))();
+
+  TextColumn get notes => text().nullable()();
+  DateTimeColumn get lastReviewed =>
+      dateTime().withDefault(currentDateAndTime)();
+
+  @override
+  Set<Column> get primaryKey => {partId};
+}

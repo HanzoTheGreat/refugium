@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/database/database.dart';
 import '../parts_provider.dart';
 import 'edit_part_screen.dart';
+import 'consent_screen.dart';
 
 class PartDetailScreen extends ConsumerWidget {
   final String partId;
@@ -74,6 +75,18 @@ class PartDetailScreen extends ConsumerWidget {
               _Section(
                 title: 'Beschreibung (extern)',
                 children: [_Field(null, part.descriptionExternal)],
+              ),
+              const SizedBox(height: 16),
+              FilledButton.tonal(
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => ConsentScreen(
+                      partId: part.id,
+                      partName: part.displayName ?? 'Unbenannt',
+                    ),
+                  ),
+                ),
+                child: const Text('Consent-Profil bearbeiten'),
               ),
             ],
           ),
