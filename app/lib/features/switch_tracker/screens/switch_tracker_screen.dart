@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../parts/parts_provider.dart';
+import '../../parts/consent_provider.dart';
+import '../../../core/database/database.dart';
 import '../switch_tracker_provider.dart';
 
 class SwitchTrackerScreen extends ConsumerWidget {
@@ -27,27 +29,33 @@ class SwitchTrackerScreen extends ConsumerWidget {
                 final currentPart = current == null
                     ? null
                     : parts.where((p) => p.id == current.partId).firstOrNull;
-                return Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(24),
-                  color: Theme.of(context).colorScheme.primaryContainer,
-                  child: Column(
-                    children: [
-                      Text(
-                        'Aktuell vorne',
-                        style: Theme.of(context).textTheme.bodySmall,
+                return Column(
+                  children: [
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(24),
+                      color: Theme.of(context).colorScheme.primaryContainer,
+                      child: Column(
+                        children: [
+                          Text(
+                            'Aktuell vorne',
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            currentPart?.displayName ?? 'Niemand eingeloggt',
+                            style: Theme.of(context).textTheme.headlineMedium,
+                          ),
+                          if (currentPart?.pronouns != null) ...[
+                            const SizedBox(height: 4),
+                            Text(currentPart!.pronouns!),
+                          ],
+                        ],
                       ),
-                      const SizedBox(height: 8),
-                      Text(
-                        currentPart?.displayName ?? 'Niemand eingeloggt',
-                        style: Theme.of(context).textTheme.headlineMedium,
-                      ),
-                      if (currentPart?.pronouns != null) ...[
-                        const SizedBox(height: 4),
-                        Text(currentPart!.pronouns!),
-                      ],
-                    ],
-                  ),
+                    ),
+                    if (currentPart != null)
+                      _ConsentSummary(partId: currentPart.id),
+                  ],
                 );
               },
             ),
@@ -71,17 +79,20 @@ class SwitchTrackerScreen extends ConsumerWidget {
               final activeParts = parts
                   .where((p) => p.status == 'Active')
                   .toList();
-              return Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: activeParts.map((part) {
-                  return ActionChip(
-                    label: Text(part.displayName ?? 'Unbenannt'),
-                    onPressed: () => ref
-                        .read(switchTrackerProvider.notifier)
-                        .switchTo(part.id),
-                  );
-                }).toList(),
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: activeParts.map((part) {
+                    return ActionChip(
+                      label: Text(part.displayName ?? 'Unbenannt'),
+                      onPressed: () => ref
+                          .read(switchTrackerProvider.notifier)
+                          .switchTo(part.id),
+                    );
+                  }).toList(),
+                ),
               );
             },
           ),
@@ -136,5 +147,94 @@ class SwitchTrackerScreen extends ConsumerWidget {
 
   String _formatTime(DateTime dt) {
     return '${dt.day.toString().padLeft(2, '0')}.${dt.month.toString().padLeft(2, '0')}.${dt.year}  ${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+  }
+}
+
+class _ConsentSummary extends ConsumerWidget {
+  final String partId;
+
+  const _ConsentSummary({required this.partId});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final consentAsync = ref.watch(consentProfileProvider(partId));
+
+    return consentAsync.when(
+      loading: () => const SizedBox.shrink(),
+      error: (e, _) => const SizedBox.shrink(),
+      data: (consent) {
+        if (consent == null) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Text(
+              'Kein Consent-Profil hinterlegt.',
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: Colors.orange),
+            ),
+          );
+        }
+        return Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Consent', style: Theme.of(context).textTheme.titleSmall),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 6,
+                children: [
+                  _ConsentChip('Berührung', consent.touchGeneral),
+                  _ConsentChip('Intim', consent.touchIntimate),
+                  _ConsentChip('Küssen', consent.kiss),
+                  _ConsentChip('Kosenamen', consent.petNames),
+                  _ConsentChip('Sex', consent.sexualActivity),
+                  _ConsentChip('Autofahren', consent.driving),
+                  _ConsentChip('Alkohol', consent.alcohol),
+                  _ConsentChip('Finanzen', consent.decisionsFinancial),
+                  _ConsentChip('Medizin', consent.decisionsMedical),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _ConsentChip extends StatelessWidget {
+  final String label;
+  final String value;
+
+  const _ConsentChip(this.label, this.value);
+
+  @override
+  Widget build(BuildContext context) {
+    final (color, icon) = switch (value) {
+      'Yes' => (Colors.green.shade100, Icons.check_circle),
+      'AskFirst' => (Colors.orange.shade100, Icons.help),
+      'No' => (Colors.red.shade100, Icons.cancel),
+      _ => (Colors.grey.shade200, Icons.question_mark),
+    };
+
+    return Chip(
+      avatar: Icon(
+        icon,
+        size: 16,
+        color: color == Colors.green.shade100
+            ? Colors.green.shade700
+            : color == Colors.orange.shade100
+            ? Colors.orange.shade700
+            : color == Colors.red.shade100
+            ? Colors.red.shade700
+            : Colors.grey,
+      ),
+      label: Text(label, style: const TextStyle(fontSize: 12)),
+      backgroundColor: color,
+      padding: EdgeInsets.zero,
+      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+    );
   }
 }
