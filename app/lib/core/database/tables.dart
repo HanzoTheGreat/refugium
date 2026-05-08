@@ -43,3 +43,22 @@ class Parts extends Table {
   @override
   Set<Column> get primaryKey => {id};
 }
+
+@DataClassName('SwitchEventsData')
+class SwitchEvents extends Table {
+  @override
+  String get tableName => 'switch_events';
+
+  TextColumn get id => text().clientDefault(
+    () => DateTime.now().millisecondsSinceEpoch.toString(),
+  )();
+  TextColumn get partId => text().references(Parts, #id)();
+  DateTimeColumn get timestamp => dateTime().withDefault(currentDateAndTime)();
+  TextColumn get markedBy =>
+      text().withDefault(const Constant('SelfCheckin'))();
+  TextColumn get contextTags => text().nullable()();
+  TextColumn get note => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
