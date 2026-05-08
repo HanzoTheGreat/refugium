@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/database/database.dart';
+import '../screens/part_detail_screen.dart';
 
 class PartCard extends StatelessWidget {
   final PartsData part;
@@ -10,35 +11,41 @@ class PartCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              part.displayName ?? 'Unbenannt',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            if (part.pronouns != null) ...[
-              const SizedBox(height: 4),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: () => Navigator.of(
+          context,
+        ).push(MaterialPageRoute(builder: (_) => PartDetailScreen(part: part))),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
               Text(
-                part.pronouns!,
-                style: Theme.of(context).textTheme.bodySmall,
+                part.displayName ?? 'Unbenannt',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              if (part.pronouns != null) ...[
+                const SizedBox(height: 4),
+                Text(
+                  part.pronouns!,
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ],
+              if (part.role != null) ...[
+                const SizedBox(height: 4),
+                Text(part.role!),
+              ],
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Chip(label: Text(part.status), padding: EdgeInsets.zero),
+                  const SizedBox(width: 8),
+                  Chip(label: Text(part.visibility), padding: EdgeInsets.zero),
+                ],
               ),
             ],
-            if (part.role != null) ...[
-              const SizedBox(height: 4),
-              Text(part.role!),
-            ],
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Chip(label: Text(part.status), padding: EdgeInsets.zero),
-                const SizedBox(width: 8),
-                Chip(label: Text(part.visibility), padding: EdgeInsets.zero),
-              ],
-            ),
-          ],
+          ),
         ),
       ),
     );
