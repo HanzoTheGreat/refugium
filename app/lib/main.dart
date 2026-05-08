@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/database/database.dart';
+import 'features/parts/screens/parts_screen.dart';
 
-// Globaler DB-Provider
 final databaseProvider = Provider<AppDatabase>((ref) {
   final db = AppDatabase();
   ref.onDispose(() => db.close());
@@ -24,29 +24,12 @@ class RefugiumApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF7B9E87), // ruhiges Grün
+          seedColor: const Color(0xFF7B9E87),
           brightness: Brightness.light,
         ),
         useMaterial3: true,
       ),
-      home: const HomeScreen(),
-    );
-  }
-}
-
-class HomeScreen extends ConsumerWidget {
-  const HomeScreen({super.key});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final db = ref.watch(databaseProvider);
-    return Scaffold(
-      body: Center(
-        child: Text(
-          'Refugium',
-          style: Theme.of(context).textTheme.headlineMedium,
-        ),
-      ),
+      home: const PartsScreen(),
     );
   }
 }

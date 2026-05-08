@@ -434,7 +434,7 @@ class SystemsCompanion extends UpdateCompanion<System> {
   }
 }
 
-class $PartsTable extends Parts with TableInfo<$PartsTable, Part> {
+class $PartsTable extends Parts with TableInfo<$PartsTable, PartsData> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
@@ -616,7 +616,7 @@ class $PartsTable extends Parts with TableInfo<$PartsTable, Part> {
   static const String $name = 'parts';
   @override
   VerificationContext validateIntegrity(
-    Insertable<Part> instance, {
+    Insertable<PartsData> instance, {
     bool isInserting = false,
   }) {
     final context = VerificationContext();
@@ -726,9 +726,9 @@ class $PartsTable extends Parts with TableInfo<$PartsTable, Part> {
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
-  Part map(Map<String, dynamic> data, {String? tablePrefix}) {
+  PartsData map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return Part(
+    return PartsData(
       id: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}id'],
@@ -794,7 +794,7 @@ class $PartsTable extends Parts with TableInfo<$PartsTable, Part> {
   }
 }
 
-class Part extends DataClass implements Insertable<Part> {
+class PartsData extends DataClass implements Insertable<PartsData> {
   final String id;
   final String? displayName;
   final String? pronouns;
@@ -809,7 +809,7 @@ class Part extends DataClass implements Insertable<Part> {
   final String? emergenceContext;
   final DateTime createdAt;
   final DateTime updatedAt;
-  const Part({
+  const PartsData({
     required this.id,
     this.displayName,
     this.pronouns,
@@ -898,12 +898,12 @@ class Part extends DataClass implements Insertable<Part> {
     );
   }
 
-  factory Part.fromJson(
+  factory PartsData.fromJson(
     Map<String, dynamic> json, {
     ValueSerializer? serializer,
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return Part(
+    return PartsData(
       id: serializer.fromJson<String>(json['id']),
       displayName: serializer.fromJson<String?>(json['displayName']),
       pronouns: serializer.fromJson<String?>(json['pronouns']),
@@ -945,7 +945,7 @@ class Part extends DataClass implements Insertable<Part> {
     };
   }
 
-  Part copyWith({
+  PartsData copyWith({
     String? id,
     Value<String?> displayName = const Value.absent(),
     Value<String?> pronouns = const Value.absent(),
@@ -960,7 +960,7 @@ class Part extends DataClass implements Insertable<Part> {
     Value<String?> emergenceContext = const Value.absent(),
     DateTime? createdAt,
     DateTime? updatedAt,
-  }) => Part(
+  }) => PartsData(
     id: id ?? this.id,
     displayName: displayName.present ? displayName.value : this.displayName,
     pronouns: pronouns.present ? pronouns.value : this.pronouns,
@@ -984,8 +984,8 @@ class Part extends DataClass implements Insertable<Part> {
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
   );
-  Part copyWithCompanion(PartsCompanion data) {
-    return Part(
+  PartsData copyWithCompanion(PartsCompanion data) {
+    return PartsData(
       id: data.id.present ? data.id.value : this.id,
       displayName: data.displayName.present
           ? data.displayName.value
@@ -1019,7 +1019,7 @@ class Part extends DataClass implements Insertable<Part> {
 
   @override
   String toString() {
-    return (StringBuffer('Part(')
+    return (StringBuffer('PartsData(')
           ..write('id: $id, ')
           ..write('displayName: $displayName, ')
           ..write('pronouns: $pronouns, ')
@@ -1058,7 +1058,7 @@ class Part extends DataClass implements Insertable<Part> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is Part &&
+      (other is PartsData &&
           other.id == this.id &&
           other.displayName == this.displayName &&
           other.pronouns == this.pronouns &&
@@ -1075,7 +1075,7 @@ class Part extends DataClass implements Insertable<Part> {
           other.updatedAt == this.updatedAt);
 }
 
-class PartsCompanion extends UpdateCompanion<Part> {
+class PartsCompanion extends UpdateCompanion<PartsData> {
   final Value<String> id;
   final Value<String?> displayName;
   final Value<String?> pronouns;
@@ -1125,7 +1125,7 @@ class PartsCompanion extends UpdateCompanion<Part> {
     this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
-  static Insertable<Part> custom({
+  static Insertable<PartsData> custom({
     Expression<String>? id,
     Expression<String>? displayName,
     Expression<String>? pronouns,
@@ -1773,14 +1773,14 @@ class $$PartsTableTableManager
         RootTableManager<
           _$AppDatabase,
           $PartsTable,
-          Part,
+          PartsData,
           $$PartsTableFilterComposer,
           $$PartsTableOrderingComposer,
           $$PartsTableAnnotationComposer,
           $$PartsTableCreateCompanionBuilder,
           $$PartsTableUpdateCompanionBuilder,
-          (Part, BaseReferences<_$AppDatabase, $PartsTable, Part>),
-          Part,
+          (PartsData, BaseReferences<_$AppDatabase, $PartsTable, PartsData>),
+          PartsData,
           PrefetchHooks Function()
         > {
   $$PartsTableTableManager(_$AppDatabase db, $PartsTable table)
@@ -1874,14 +1874,14 @@ typedef $$PartsTableProcessedTableManager =
     ProcessedTableManager<
       _$AppDatabase,
       $PartsTable,
-      Part,
+      PartsData,
       $$PartsTableFilterComposer,
       $$PartsTableOrderingComposer,
       $$PartsTableAnnotationComposer,
       $$PartsTableCreateCompanionBuilder,
       $$PartsTableUpdateCompanionBuilder,
-      (Part, BaseReferences<_$AppDatabase, $PartsTable, Part>),
-      Part,
+      (PartsData, BaseReferences<_$AppDatabase, $PartsTable, PartsData>),
+      PartsData,
       PrefetchHooks Function()
     >;
 

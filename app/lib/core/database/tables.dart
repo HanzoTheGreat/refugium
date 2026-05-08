@@ -18,6 +18,7 @@ class Systems extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+@DataClassName('PartsData')
 class Parts extends Table {
   @override
   String get tableName => 'parts';
