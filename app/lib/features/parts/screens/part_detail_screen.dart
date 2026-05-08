@@ -2,60 +2,83 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/database/database.dart';
 import '../parts_provider.dart';
+import 'edit_part_screen.dart';
 
 class PartDetailScreen extends ConsumerWidget {
-  final PartsData part;
+  final String partId;
 
-  const PartDetailScreen({super.key, required this.part});
+  const PartDetailScreen({super.key, required this.partId});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(part.displayName ?? 'Unbenannt'),
-        actions: [
-          PopupMenuButton<String>(
-            onSelected: (value) async {
-              await ref
-                  .read(partsProvider.notifier)
-                  .setPartStatus(part.id, value);
-              if (context.mounted) Navigator.of(context).pop();
-            },
-            itemBuilder: (_) => const [
-              PopupMenuItem(value: 'Active', child: Text('Aktiv')),
-              PopupMenuItem(value: 'Dormant', child: Text('Ruhend')),
-              PopupMenuItem(value: 'Integrated', child: Text('Integriert')),
-              PopupMenuItem(value: 'Hypothetical', child: Text('Hypothetisch')),
+    final partsAsync = ref.watch(partsProvider);
+
+    return partsAsync.when(
+      loading: () =>
+          const Scaffold(body: Center(child: CircularProgressIndicator())),
+      error: (e, st) => Scaffold(body: Center(child: Text('Fehler: $e'))),
+      data: (parts) {
+        final part = parts.firstWhere(
+          (p) => p.id == partId,
+          orElse: () => throw Exception('Anteil nicht gefunden'),
+        );
+        return Scaffold(
+          appBar: AppBar(
+            title: Text(part.displayName ?? 'Unbenannt'),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.edit),
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => EditPartScreen(part: part)),
+                ),
+              ),
+              PopupMenuButton<String>(
+                onSelected: (value) async {
+                  await ref
+                      .read(partsProvider.notifier)
+                      .setPartStatus(part.id, value);
+                  if (context.mounted) Navigator.of(context).pop();
+                },
+                itemBuilder: (_) => const [
+                  PopupMenuItem(value: 'Active', child: Text('Aktiv')),
+                  PopupMenuItem(value: 'Dormant', child: Text('Ruhend')),
+                  PopupMenuItem(value: 'Integrated', child: Text('Integriert')),
+                  PopupMenuItem(
+                    value: 'Hypothetical',
+                    child: Text('Hypothetisch'),
+                  ),
+                ],
+              ),
             ],
           ),
-        ],
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          _Section(
-            title: 'Allgemein',
+          body: ListView(
+            padding: const EdgeInsets.all(16),
             children: [
-              _Field('Name', part.displayName),
-              _Field('Pronomen', part.pronouns),
-              _Field('Ungefähres Alter', part.apparentAge),
-              _Field('Rolle', part.role),
-              _Field('Status', part.status),
-              _Field('Sichtbarkeit', part.visibility),
+              _Section(
+                title: 'Allgemein',
+                children: [
+                  _Field('Name', part.displayName),
+                  _Field('Pronomen', part.pronouns),
+                  _Field('Ungefähres Alter', part.apparentAge),
+                  _Field('Rolle', part.role),
+                  _Field('Status', part.status),
+                  _Field('Sichtbarkeit', part.visibility),
+                ],
+              ),
+              const SizedBox(height: 16),
+              _Section(
+                title: 'Beschreibung (intern)',
+                children: [_Field(null, part.descriptionInternal)],
+              ),
+              const SizedBox(height: 16),
+              _Section(
+                title: 'Beschreibung (extern)',
+                children: [_Field(null, part.descriptionExternal)],
+              ),
             ],
           ),
-          const SizedBox(height: 16),
-          _Section(
-            title: 'Beschreibung (intern)',
-            children: [_Field(null, part.descriptionInternal)],
-          ),
-          const SizedBox(height: 16),
-          _Section(
-            title: 'Beschreibung (extern)',
-            children: [_Field(null, part.descriptionExternal)],
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

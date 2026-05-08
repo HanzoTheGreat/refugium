@@ -13,9 +13,9 @@ class PartCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 12),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
-        onTap: () => Navigator.of(
-          context,
-        ).push(MaterialPageRoute(builder: (_) => PartDetailScreen(part: part))),
+        onTap: () => Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => PartDetailScreen(partId: part.id)),
+        ),
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
