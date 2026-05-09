@@ -2402,6 +2402,529 @@ class ConsentProfilesCompanion extends UpdateCompanion<ConsentProfileData> {
   }
 }
 
+class $TriggerEntriesTable extends TriggerEntries
+    with TableInfo<$TriggerEntriesTable, TriggerEntryData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $TriggerEntriesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    clientDefault: () => DateTime.now().millisecondsSinceEpoch.toString(),
+  );
+  static const VerificationMeta _partIdMeta = const VerificationMeta('partId');
+  @override
+  late final GeneratedColumn<String> partId = GeneratedColumn<String>(
+    'part_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES parts (id)',
+    ),
+  );
+  static const VerificationMeta _typeMeta = const VerificationMeta('type');
+  @override
+  late final GeneratedColumn<String> type = GeneratedColumn<String>(
+    'type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('Other'),
+  );
+  static const VerificationMeta _descriptionMeta = const VerificationMeta(
+    'description',
+  );
+  @override
+  late final GeneratedColumn<String> description = GeneratedColumn<String>(
+    'description',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _severityMeta = const VerificationMeta(
+    'severity',
+  );
+  @override
+  late final GeneratedColumn<String> severity = GeneratedColumn<String>(
+    'severity',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('Moderate'),
+  );
+  static const VerificationMeta _copingSuggestionMeta = const VerificationMeta(
+    'copingSuggestion',
+  );
+  @override
+  late final GeneratedColumn<String> copingSuggestion = GeneratedColumn<String>(
+    'coping_suggestion',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _appliesExternallyMeta = const VerificationMeta(
+    'appliesExternally',
+  );
+  @override
+  late final GeneratedColumn<bool> appliesExternally = GeneratedColumn<bool>(
+    'applies_externally',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("applies_externally" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    partId,
+    type,
+    description,
+    severity,
+    copingSuggestion,
+    appliesExternally,
+    createdAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'trigger_entries';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<TriggerEntryData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('part_id')) {
+      context.handle(
+        _partIdMeta,
+        partId.isAcceptableOrUnknown(data['part_id']!, _partIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_partIdMeta);
+    }
+    if (data.containsKey('type')) {
+      context.handle(
+        _typeMeta,
+        type.isAcceptableOrUnknown(data['type']!, _typeMeta),
+      );
+    }
+    if (data.containsKey('description')) {
+      context.handle(
+        _descriptionMeta,
+        description.isAcceptableOrUnknown(
+          data['description']!,
+          _descriptionMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_descriptionMeta);
+    }
+    if (data.containsKey('severity')) {
+      context.handle(
+        _severityMeta,
+        severity.isAcceptableOrUnknown(data['severity']!, _severityMeta),
+      );
+    }
+    if (data.containsKey('coping_suggestion')) {
+      context.handle(
+        _copingSuggestionMeta,
+        copingSuggestion.isAcceptableOrUnknown(
+          data['coping_suggestion']!,
+          _copingSuggestionMeta,
+        ),
+      );
+    }
+    if (data.containsKey('applies_externally')) {
+      context.handle(
+        _appliesExternallyMeta,
+        appliesExternally.isAcceptableOrUnknown(
+          data['applies_externally']!,
+          _appliesExternallyMeta,
+        ),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  TriggerEntryData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return TriggerEntryData(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      partId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}part_id'],
+      )!,
+      type: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}type'],
+      )!,
+      description: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}description'],
+      )!,
+      severity: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}severity'],
+      )!,
+      copingSuggestion: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}coping_suggestion'],
+      ),
+      appliesExternally: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}applies_externally'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $TriggerEntriesTable createAlias(String alias) {
+    return $TriggerEntriesTable(attachedDatabase, alias);
+  }
+}
+
+class TriggerEntryData extends DataClass
+    implements Insertable<TriggerEntryData> {
+  final String id;
+  final String partId;
+  final String type;
+  final String description;
+  final String severity;
+  final String? copingSuggestion;
+  final bool appliesExternally;
+  final DateTime createdAt;
+  const TriggerEntryData({
+    required this.id,
+    required this.partId,
+    required this.type,
+    required this.description,
+    required this.severity,
+    this.copingSuggestion,
+    required this.appliesExternally,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['part_id'] = Variable<String>(partId);
+    map['type'] = Variable<String>(type);
+    map['description'] = Variable<String>(description);
+    map['severity'] = Variable<String>(severity);
+    if (!nullToAbsent || copingSuggestion != null) {
+      map['coping_suggestion'] = Variable<String>(copingSuggestion);
+    }
+    map['applies_externally'] = Variable<bool>(appliesExternally);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  TriggerEntriesCompanion toCompanion(bool nullToAbsent) {
+    return TriggerEntriesCompanion(
+      id: Value(id),
+      partId: Value(partId),
+      type: Value(type),
+      description: Value(description),
+      severity: Value(severity),
+      copingSuggestion: copingSuggestion == null && nullToAbsent
+          ? const Value.absent()
+          : Value(copingSuggestion),
+      appliesExternally: Value(appliesExternally),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory TriggerEntryData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return TriggerEntryData(
+      id: serializer.fromJson<String>(json['id']),
+      partId: serializer.fromJson<String>(json['partId']),
+      type: serializer.fromJson<String>(json['type']),
+      description: serializer.fromJson<String>(json['description']),
+      severity: serializer.fromJson<String>(json['severity']),
+      copingSuggestion: serializer.fromJson<String?>(json['copingSuggestion']),
+      appliesExternally: serializer.fromJson<bool>(json['appliesExternally']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'partId': serializer.toJson<String>(partId),
+      'type': serializer.toJson<String>(type),
+      'description': serializer.toJson<String>(description),
+      'severity': serializer.toJson<String>(severity),
+      'copingSuggestion': serializer.toJson<String?>(copingSuggestion),
+      'appliesExternally': serializer.toJson<bool>(appliesExternally),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  TriggerEntryData copyWith({
+    String? id,
+    String? partId,
+    String? type,
+    String? description,
+    String? severity,
+    Value<String?> copingSuggestion = const Value.absent(),
+    bool? appliesExternally,
+    DateTime? createdAt,
+  }) => TriggerEntryData(
+    id: id ?? this.id,
+    partId: partId ?? this.partId,
+    type: type ?? this.type,
+    description: description ?? this.description,
+    severity: severity ?? this.severity,
+    copingSuggestion: copingSuggestion.present
+        ? copingSuggestion.value
+        : this.copingSuggestion,
+    appliesExternally: appliesExternally ?? this.appliesExternally,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  TriggerEntryData copyWithCompanion(TriggerEntriesCompanion data) {
+    return TriggerEntryData(
+      id: data.id.present ? data.id.value : this.id,
+      partId: data.partId.present ? data.partId.value : this.partId,
+      type: data.type.present ? data.type.value : this.type,
+      description: data.description.present
+          ? data.description.value
+          : this.description,
+      severity: data.severity.present ? data.severity.value : this.severity,
+      copingSuggestion: data.copingSuggestion.present
+          ? data.copingSuggestion.value
+          : this.copingSuggestion,
+      appliesExternally: data.appliesExternally.present
+          ? data.appliesExternally.value
+          : this.appliesExternally,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TriggerEntryData(')
+          ..write('id: $id, ')
+          ..write('partId: $partId, ')
+          ..write('type: $type, ')
+          ..write('description: $description, ')
+          ..write('severity: $severity, ')
+          ..write('copingSuggestion: $copingSuggestion, ')
+          ..write('appliesExternally: $appliesExternally, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    partId,
+    type,
+    description,
+    severity,
+    copingSuggestion,
+    appliesExternally,
+    createdAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is TriggerEntryData &&
+          other.id == this.id &&
+          other.partId == this.partId &&
+          other.type == this.type &&
+          other.description == this.description &&
+          other.severity == this.severity &&
+          other.copingSuggestion == this.copingSuggestion &&
+          other.appliesExternally == this.appliesExternally &&
+          other.createdAt == this.createdAt);
+}
+
+class TriggerEntriesCompanion extends UpdateCompanion<TriggerEntryData> {
+  final Value<String> id;
+  final Value<String> partId;
+  final Value<String> type;
+  final Value<String> description;
+  final Value<String> severity;
+  final Value<String?> copingSuggestion;
+  final Value<bool> appliesExternally;
+  final Value<DateTime> createdAt;
+  final Value<int> rowid;
+  const TriggerEntriesCompanion({
+    this.id = const Value.absent(),
+    this.partId = const Value.absent(),
+    this.type = const Value.absent(),
+    this.description = const Value.absent(),
+    this.severity = const Value.absent(),
+    this.copingSuggestion = const Value.absent(),
+    this.appliesExternally = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  TriggerEntriesCompanion.insert({
+    this.id = const Value.absent(),
+    required String partId,
+    this.type = const Value.absent(),
+    required String description,
+    this.severity = const Value.absent(),
+    this.copingSuggestion = const Value.absent(),
+    this.appliesExternally = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : partId = Value(partId),
+       description = Value(description);
+  static Insertable<TriggerEntryData> custom({
+    Expression<String>? id,
+    Expression<String>? partId,
+    Expression<String>? type,
+    Expression<String>? description,
+    Expression<String>? severity,
+    Expression<String>? copingSuggestion,
+    Expression<bool>? appliesExternally,
+    Expression<DateTime>? createdAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (partId != null) 'part_id': partId,
+      if (type != null) 'type': type,
+      if (description != null) 'description': description,
+      if (severity != null) 'severity': severity,
+      if (copingSuggestion != null) 'coping_suggestion': copingSuggestion,
+      if (appliesExternally != null) 'applies_externally': appliesExternally,
+      if (createdAt != null) 'created_at': createdAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  TriggerEntriesCompanion copyWith({
+    Value<String>? id,
+    Value<String>? partId,
+    Value<String>? type,
+    Value<String>? description,
+    Value<String>? severity,
+    Value<String?>? copingSuggestion,
+    Value<bool>? appliesExternally,
+    Value<DateTime>? createdAt,
+    Value<int>? rowid,
+  }) {
+    return TriggerEntriesCompanion(
+      id: id ?? this.id,
+      partId: partId ?? this.partId,
+      type: type ?? this.type,
+      description: description ?? this.description,
+      severity: severity ?? this.severity,
+      copingSuggestion: copingSuggestion ?? this.copingSuggestion,
+      appliesExternally: appliesExternally ?? this.appliesExternally,
+      createdAt: createdAt ?? this.createdAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (partId.present) {
+      map['part_id'] = Variable<String>(partId.value);
+    }
+    if (type.present) {
+      map['type'] = Variable<String>(type.value);
+    }
+    if (description.present) {
+      map['description'] = Variable<String>(description.value);
+    }
+    if (severity.present) {
+      map['severity'] = Variable<String>(severity.value);
+    }
+    if (copingSuggestion.present) {
+      map['coping_suggestion'] = Variable<String>(copingSuggestion.value);
+    }
+    if (appliesExternally.present) {
+      map['applies_externally'] = Variable<bool>(appliesExternally.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TriggerEntriesCompanion(')
+          ..write('id: $id, ')
+          ..write('partId: $partId, ')
+          ..write('type: $type, ')
+          ..write('description: $description, ')
+          ..write('severity: $severity, ')
+          ..write('copingSuggestion: $copingSuggestion, ')
+          ..write('appliesExternally: $appliesExternally, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -2411,6 +2934,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $ConsentProfilesTable consentProfiles = $ConsentProfilesTable(
     this,
   );
+  late final $TriggerEntriesTable triggerEntries = $TriggerEntriesTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -2420,6 +2944,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     parts,
     switchEvents,
     consentProfiles,
+    triggerEntries,
   ];
 }
 
@@ -2722,6 +3247,24 @@ final class $$PartsTableReferences
       manager.$state.copyWith(prefetchedData: cache),
     );
   }
+
+  static MultiTypedResultKey<$TriggerEntriesTable, List<TriggerEntryData>>
+  _triggerEntriesRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.triggerEntries,
+    aliasName: $_aliasNameGenerator(db.parts.id, db.triggerEntries.partId),
+  );
+
+  $$TriggerEntriesTableProcessedTableManager get triggerEntriesRefs {
+    final manager = $$TriggerEntriesTableTableManager(
+      $_db,
+      $_db.triggerEntries,
+    ).filter((f) => f.partId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_triggerEntriesRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
 }
 
 class $$PartsTableFilterComposer extends Composer<_$AppDatabase, $PartsTable> {
@@ -2843,6 +3386,31 @@ class $$PartsTableFilterComposer extends Composer<_$AppDatabase, $PartsTable> {
           }) => $$ConsentProfilesTableFilterComposer(
             $db: $db,
             $table: $db.consentProfiles,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> triggerEntriesRefs(
+    Expression<bool> Function($$TriggerEntriesTableFilterComposer f) f,
+  ) {
+    final $$TriggerEntriesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.triggerEntries,
+      getReferencedColumn: (t) => t.partId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TriggerEntriesTableFilterComposer(
+            $db: $db,
+            $table: $db.triggerEntries,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -3047,6 +3615,31 @@ class $$PartsTableAnnotationComposer
     );
     return f(composer);
   }
+
+  Expression<T> triggerEntriesRefs<T extends Object>(
+    Expression<T> Function($$TriggerEntriesTableAnnotationComposer a) f,
+  ) {
+    final $$TriggerEntriesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.triggerEntries,
+      getReferencedColumn: (t) => t.partId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TriggerEntriesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.triggerEntries,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$PartsTableTableManager
@@ -3065,6 +3658,7 @@ class $$PartsTableTableManager
           PrefetchHooks Function({
             bool switchEventsRefs,
             bool consentProfilesRefs,
+            bool triggerEntriesRefs,
           })
         > {
   $$PartsTableTableManager(_$AppDatabase db, $PartsTable table)
@@ -3153,12 +3747,17 @@ class $$PartsTableTableManager
               )
               .toList(),
           prefetchHooksCallback:
-              ({switchEventsRefs = false, consentProfilesRefs = false}) {
+              ({
+                switchEventsRefs = false,
+                consentProfilesRefs = false,
+                triggerEntriesRefs = false,
+              }) {
                 return PrefetchHooks(
                   db: db,
                   explicitlyWatchedTables: [
                     if (switchEventsRefs) db.switchEvents,
                     if (consentProfilesRefs) db.consentProfiles,
+                    if (triggerEntriesRefs) db.triggerEntries,
                   ],
                   addJoins: null,
                   getPrefetchedDataCallback: (items) async {
@@ -3205,6 +3804,27 @@ class $$PartsTableTableManager
                               ),
                           typedResults: items,
                         ),
+                      if (triggerEntriesRefs)
+                        await $_getPrefetchedData<
+                          PartsData,
+                          $PartsTable,
+                          TriggerEntryData
+                        >(
+                          currentTable: table,
+                          referencedTable: $$PartsTableReferences
+                              ._triggerEntriesRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$PartsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).triggerEntriesRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.partId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
                     ];
                   },
                 );
@@ -3225,7 +3845,11 @@ typedef $$PartsTableProcessedTableManager =
       $$PartsTableUpdateCompanionBuilder,
       (PartsData, $$PartsTableReferences),
       PartsData,
-      PrefetchHooks Function({bool switchEventsRefs, bool consentProfilesRefs})
+      PrefetchHooks Function({
+        bool switchEventsRefs,
+        bool consentProfilesRefs,
+        bool triggerEntriesRefs,
+      })
     >;
 typedef $$SwitchEventsTableCreateCompanionBuilder =
     SwitchEventsCompanion Function({
@@ -4043,6 +4667,395 @@ typedef $$ConsentProfilesTableProcessedTableManager =
       ConsentProfileData,
       PrefetchHooks Function({bool partId})
     >;
+typedef $$TriggerEntriesTableCreateCompanionBuilder =
+    TriggerEntriesCompanion Function({
+      Value<String> id,
+      required String partId,
+      Value<String> type,
+      required String description,
+      Value<String> severity,
+      Value<String?> copingSuggestion,
+      Value<bool> appliesExternally,
+      Value<DateTime> createdAt,
+      Value<int> rowid,
+    });
+typedef $$TriggerEntriesTableUpdateCompanionBuilder =
+    TriggerEntriesCompanion Function({
+      Value<String> id,
+      Value<String> partId,
+      Value<String> type,
+      Value<String> description,
+      Value<String> severity,
+      Value<String?> copingSuggestion,
+      Value<bool> appliesExternally,
+      Value<DateTime> createdAt,
+      Value<int> rowid,
+    });
+
+final class $$TriggerEntriesTableReferences
+    extends
+        BaseReferences<_$AppDatabase, $TriggerEntriesTable, TriggerEntryData> {
+  $$TriggerEntriesTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $PartsTable _partIdTable(_$AppDatabase db) => db.parts.createAlias(
+    $_aliasNameGenerator(db.triggerEntries.partId, db.parts.id),
+  );
+
+  $$PartsTableProcessedTableManager get partId {
+    final $_column = $_itemColumn<String>('part_id')!;
+
+    final manager = $$PartsTableTableManager(
+      $_db,
+      $_db.parts,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_partIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$TriggerEntriesTableFilterComposer
+    extends Composer<_$AppDatabase, $TriggerEntriesTable> {
+  $$TriggerEntriesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get type => $composableBuilder(
+    column: $table.type,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get severity => $composableBuilder(
+    column: $table.severity,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get copingSuggestion => $composableBuilder(
+    column: $table.copingSuggestion,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get appliesExternally => $composableBuilder(
+    column: $table.appliesExternally,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$PartsTableFilterComposer get partId {
+    final $$PartsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.partId,
+      referencedTable: $db.parts,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$PartsTableFilterComposer(
+            $db: $db,
+            $table: $db.parts,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$TriggerEntriesTableOrderingComposer
+    extends Composer<_$AppDatabase, $TriggerEntriesTable> {
+  $$TriggerEntriesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get type => $composableBuilder(
+    column: $table.type,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get severity => $composableBuilder(
+    column: $table.severity,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get copingSuggestion => $composableBuilder(
+    column: $table.copingSuggestion,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get appliesExternally => $composableBuilder(
+    column: $table.appliesExternally,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$PartsTableOrderingComposer get partId {
+    final $$PartsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.partId,
+      referencedTable: $db.parts,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$PartsTableOrderingComposer(
+            $db: $db,
+            $table: $db.parts,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$TriggerEntriesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $TriggerEntriesTable> {
+  $$TriggerEntriesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get type =>
+      $composableBuilder(column: $table.type, builder: (column) => column);
+
+  GeneratedColumn<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get severity =>
+      $composableBuilder(column: $table.severity, builder: (column) => column);
+
+  GeneratedColumn<String> get copingSuggestion => $composableBuilder(
+    column: $table.copingSuggestion,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get appliesExternally => $composableBuilder(
+    column: $table.appliesExternally,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  $$PartsTableAnnotationComposer get partId {
+    final $$PartsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.partId,
+      referencedTable: $db.parts,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$PartsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.parts,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$TriggerEntriesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $TriggerEntriesTable,
+          TriggerEntryData,
+          $$TriggerEntriesTableFilterComposer,
+          $$TriggerEntriesTableOrderingComposer,
+          $$TriggerEntriesTableAnnotationComposer,
+          $$TriggerEntriesTableCreateCompanionBuilder,
+          $$TriggerEntriesTableUpdateCompanionBuilder,
+          (TriggerEntryData, $$TriggerEntriesTableReferences),
+          TriggerEntryData,
+          PrefetchHooks Function({bool partId})
+        > {
+  $$TriggerEntriesTableTableManager(
+    _$AppDatabase db,
+    $TriggerEntriesTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$TriggerEntriesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$TriggerEntriesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$TriggerEntriesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> partId = const Value.absent(),
+                Value<String> type = const Value.absent(),
+                Value<String> description = const Value.absent(),
+                Value<String> severity = const Value.absent(),
+                Value<String?> copingSuggestion = const Value.absent(),
+                Value<bool> appliesExternally = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => TriggerEntriesCompanion(
+                id: id,
+                partId: partId,
+                type: type,
+                description: description,
+                severity: severity,
+                copingSuggestion: copingSuggestion,
+                appliesExternally: appliesExternally,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                required String partId,
+                Value<String> type = const Value.absent(),
+                required String description,
+                Value<String> severity = const Value.absent(),
+                Value<String?> copingSuggestion = const Value.absent(),
+                Value<bool> appliesExternally = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => TriggerEntriesCompanion.insert(
+                id: id,
+                partId: partId,
+                type: type,
+                description: description,
+                severity: severity,
+                copingSuggestion: copingSuggestion,
+                appliesExternally: appliesExternally,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$TriggerEntriesTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({partId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (partId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.partId,
+                                referencedTable: $$TriggerEntriesTableReferences
+                                    ._partIdTable(db),
+                                referencedColumn:
+                                    $$TriggerEntriesTableReferences
+                                        ._partIdTable(db)
+                                        .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$TriggerEntriesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $TriggerEntriesTable,
+      TriggerEntryData,
+      $$TriggerEntriesTableFilterComposer,
+      $$TriggerEntriesTableOrderingComposer,
+      $$TriggerEntriesTableAnnotationComposer,
+      $$TriggerEntriesTableCreateCompanionBuilder,
+      $$TriggerEntriesTableUpdateCompanionBuilder,
+      (TriggerEntryData, $$TriggerEntriesTableReferences),
+      TriggerEntryData,
+      PrefetchHooks Function({bool partId})
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -4055,4 +5068,6 @@ class $AppDatabaseManager {
       $$SwitchEventsTableTableManager(_db, _db.switchEvents);
   $$ConsentProfilesTableTableManager get consentProfiles =>
       $$ConsentProfilesTableTableManager(_db, _db.consentProfiles);
+  $$TriggerEntriesTableTableManager get triggerEntries =>
+      $$TriggerEntriesTableTableManager(_db, _db.triggerEntries);
 }

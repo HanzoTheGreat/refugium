@@ -93,3 +93,24 @@ class ConsentProfiles extends Table {
   @override
   Set<Column> get primaryKey => {partId};
 }
+
+@DataClassName('TriggerEntryData')
+class TriggerEntries extends Table {
+  @override
+  String get tableName => 'trigger_entries';
+
+  TextColumn get id => text().clientDefault(
+    () => DateTime.now().millisecondsSinceEpoch.toString(),
+  )();
+  TextColumn get partId => text().references(Parts, #id)();
+  TextColumn get type => text().withDefault(const Constant('Other'))();
+  TextColumn get description => text()();
+  TextColumn get severity => text().withDefault(const Constant('Moderate'))();
+  TextColumn get copingSuggestion => text().nullable()();
+  BoolColumn get appliesExternally =>
+      boolean().withDefault(const Constant(false))();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}

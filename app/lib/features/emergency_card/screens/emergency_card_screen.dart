@@ -1,10 +1,13 @@
+import 'package:drift/drift.dart' hide Column;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import '../../parts/parts_provider.dart';
+import '../../parts/trigger_provider.dart';
 import '../../../core/database/database.dart';
+import '../../../main.dart';
 
 class EmergencyCardScreen extends ConsumerWidget {
   const EmergencyCardScreen({super.key});
@@ -21,7 +24,7 @@ class EmergencyCardScreen extends ConsumerWidget {
             data: (parts) => IconButton(
               icon: const Icon(Icons.picture_as_pdf),
               tooltip: 'Als PDF exportieren',
-              onPressed: () => _exportPdf(context, parts),
+              onPressed: () => _exportPdf(context, ref, parts),
             ),
             orElse: () => const SizedBox.shrink(),
           ),
@@ -40,7 +43,6 @@ class EmergencyCardScreen extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Header
                 _CardSection(
                   color: Colors.red.shade50,
                   child: Column(
@@ -74,8 +76,6 @@ class EmergencyCardScreen extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(height: 16),
-
-                // Anteile
                 Text(
                   'Bekannte Anteile',
                   style: Theme.of(context).textTheme.titleSmall,
@@ -92,11 +92,10 @@ class EmergencyCardScreen extends ConsumerWidget {
                     ),
                   )
                 else
-                  ...emergencyParts.map((part) => _PartTile(part: part)),
-
+                  ...emergencyParts.map(
+                    (part) => _PartTileWithTriggers(part: part),
+                  ),
                 const SizedBox(height: 16),
-
-                // Hinweise für Ersthelfer
                 Text(
                   'Hinweise für Ersthelfer',
                   style: Theme.of(context).textTheme.titleSmall,
@@ -141,13 +140,31 @@ class EmergencyCardScreen extends ConsumerWidget {
     );
   }
 
-  Future<void> _exportPdf(BuildContext context, List<PartsData> parts) async {
+  Future<void> _exportPdf(
+    BuildContext context,
+    WidgetRef ref,
+    List<PartsData> parts,
+  ) async {
     final emergencyParts = parts
         .where((p) => p.visibility == 'Emergency' && p.status == 'Active')
         .toList();
 
-    final doc = pw.Document();
+    final Map<String, List<TriggerEntryData>> triggerMap = {};
+    for (final part in emergencyParts) {
+      final db = ref.read(databaseProvider);
+      final triggers =
+          await (db.select(db.triggerEntries)
+                ..where(
+                  (t) =>
+                      t.partId.equals(part.id) &
+                      t.appliesExternally.equals(true),
+                )
+                ..orderBy([(t) => OrderingTerm.desc(t.severity)]))
+              .get();
+      triggerMap[part.id] = triggers;
+    }
 
+    final doc = pw.Document();
     doc.addPage(
       pw.Page(
         pageFormat: PdfPageFormat.a4,
@@ -197,7 +214,7 @@ class EmergencyCardScreen extends ConsumerWidget {
               else
                 ...emergencyParts.map(
                   (part) => pw.Padding(
-                    padding: const pw.EdgeInsets.only(bottom: 8),
+                    padding: const pw.EdgeInsets.only(bottom: 12),
                     child: pw.Column(
                       crossAxisAlignment: pw.CrossAxisAlignment.start,
                       children: [
@@ -208,6 +225,19 @@ class EmergencyCardScreen extends ConsumerWidget {
                         if (part.pronouns != null) pw.Text(part.pronouns!),
                         if (part.descriptionExternal != null)
                           pw.Text(part.descriptionExternal!),
+                        if (triggerMap[part.id]?.isNotEmpty == true) ...[
+                          pw.SizedBox(height: 4),
+                          pw.Text(
+                            'Trigger:',
+                            style: pw.TextStyle(fontStyle: pw.FontStyle.italic),
+                          ),
+                          ...triggerMap[part.id]!.map(
+                            (t) => pw.Text(
+                              '· ${t.description}'
+                              '${t.copingSuggestion != null ? " → ${t.copingSuggestion}" : ""}',
+                            ),
+                          ),
+                        ],
                       ],
                     ),
                   ),
@@ -240,33 +270,19 @@ class EmergencyCardScreen extends ConsumerWidget {
   }
 }
 
-class _CardSection extends StatelessWidget {
-  final Widget child;
-  final Color? color;
-
-  const _CardSection({required this.child, this.color});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: color ?? Theme.of(context).colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: child,
-    );
-  }
-}
-
-class _PartTile extends StatelessWidget {
+class _PartTileWithTriggers extends ConsumerWidget {
   final PartsData part;
 
-  const _PartTile({required this.part});
+  const _PartTileWithTriggers({required this.part});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final triggersAsync = ref.watch(triggerEntriesProvider(part.id));
+    final externalTriggers = triggersAsync.maybeWhen(
+      data: (triggers) => triggers.where((t) => t.appliesExternally).toList(),
+      orElse: () => <TriggerEntryData>[],
+    );
+
     final desc = part.descriptionExternal;
     final truncated = desc != null && desc.length > 80
         ? '${desc.substring(0, 80)}…'
@@ -296,9 +312,82 @@ class _PartTile extends StatelessWidget {
               const Divider(height: 16),
               Text(truncated, style: Theme.of(context).textTheme.bodyMedium),
             ],
+            if (externalTriggers.isNotEmpty) ...[
+              const Divider(height: 16),
+              Text(
+                'Trigger',
+                style: Theme.of(
+                  context,
+                ).textTheme.labelSmall?.copyWith(color: Colors.red.shade700),
+              ),
+              const SizedBox(height: 4),
+              ...externalTriggers.map(
+                (t) => Padding(
+                  padding: const EdgeInsets.only(bottom: 4),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(
+                        Icons.warning_amber_outlined,
+                        size: 14,
+                        color: _severityColor(t.severity),
+                      ),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              t.description,
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
+                            if (t.copingSuggestion != null)
+                              Text(
+                                '→ ${t.copingSuggestion}',
+                                style: Theme.of(context).textTheme.bodySmall
+                                    ?.copyWith(fontStyle: FontStyle.italic),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ],
         ),
       ),
+    );
+  }
+
+  Color _severityColor(String severity) {
+    return switch (severity) {
+      'Mild' => Colors.green.shade600,
+      'Moderate' => Colors.orange.shade600,
+      'Severe' => Colors.red.shade600,
+      'Critical' => Colors.red.shade900,
+      _ => Colors.grey,
+    };
+  }
+}
+
+class _CardSection extends StatelessWidget {
+  final Widget child;
+  final Color? color;
+
+  const _CardSection({required this.child, this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: color ?? Theme.of(context).colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: child,
     );
   }
 }

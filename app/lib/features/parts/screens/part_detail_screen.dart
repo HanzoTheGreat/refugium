@@ -4,6 +4,7 @@ import '../../../core/database/database.dart';
 import '../parts_provider.dart';
 import 'edit_part_screen.dart';
 import 'consent_screen.dart';
+import 'trigger_screen.dart';
 
 class PartDetailScreen extends ConsumerWidget {
   final String partId;
@@ -87,6 +88,18 @@ class PartDetailScreen extends ConsumerWidget {
                   ),
                 ),
                 child: const Text('Consent-Profil bearbeiten'),
+              ),
+              const SizedBox(height: 8),
+              FilledButton.tonal(
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => TriggerScreen(
+                      partId: part.id,
+                      partName: part.displayName ?? 'Unbenannt',
+                    ),
+                  ),
+                ),
+                child: const Text('Trigger bearbeiten'),
               ),
             ],
           ),
