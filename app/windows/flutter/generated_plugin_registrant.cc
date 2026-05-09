@@ -9,6 +9,7 @@
 #include <flutter_secure_storage_windows/flutter_secure_storage_windows_plugin.h>
 #include <local_auth_windows/local_auth_plugin.h>
 #include <printing/printing_plugin.h>
+#include <sqlcipher_flutter_libs/sqlite3_flutter_libs_plugin.h>
 #include <sqlite3_flutter_libs/sqlite3_flutter_libs_plugin.h>
 
 void RegisterPlugins(flutter::PluginRegistry* registry) {
@@ -18,6 +19,8 @@ void RegisterPlugins(flutter::PluginRegistry* registry) {
       registry->GetRegistrarForPlugin("LocalAuthPlugin"));
   PrintingPluginRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("PrintingPlugin"));
+  Sqlite3FlutterLibsPluginRegisterWithRegistrar(
+      registry->GetRegistrarForPlugin("Sqlite3FlutterLibsPlugin"));
   Sqlite3FlutterLibsPluginRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("Sqlite3FlutterLibsPlugin"));
 }

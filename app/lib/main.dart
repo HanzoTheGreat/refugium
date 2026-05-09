@@ -9,14 +9,18 @@ import 'features/emergency_card/screens/medical_record_screen.dart';
 import 'features/journal/screens/journal_screen.dart';
 
 final databaseProvider = Provider<AppDatabase>((ref) {
-  final db = AppDatabase();
-  ref.onDispose(() => db.close());
-  return db;
+  throw UnimplementedError('Database not initialized');
 });
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(const ProviderScope(child: RefugiumApp()));
+  final db = await AppDatabase.open();
+  runApp(
+    ProviderScope(
+      overrides: [databaseProvider.overrideWithValue(db)],
+      child: const RefugiumApp(),
+    ),
+  );
 }
 
 class RefugiumApp extends StatelessWidget {

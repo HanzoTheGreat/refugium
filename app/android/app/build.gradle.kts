@@ -42,3 +42,7 @@ android {
 flutter {
     source = "../.."
 }
+
+configurations.all {
+    exclude(module = "sqlite3_flutter_libs")
+}
