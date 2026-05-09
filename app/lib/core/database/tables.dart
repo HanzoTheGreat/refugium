@@ -114,3 +114,32 @@ class TriggerEntries extends Table {
   @override
   Set<Column> get primaryKey => {id};
 }
+
+@DataClassName('EmergencyContactData')
+class EmergencyContacts extends Table {
+  @override
+  String get tableName => 'emergency_contacts';
+
+  TextColumn get id => text().clientDefault(
+    () => DateTime.now().millisecondsSinceEpoch.toString(),
+  )();
+  IntColumn get rank => integer().withDefault(const Constant(0))();
+  TextColumn get name => text()();
+  TextColumn get relationship => text()();
+  TextColumn get phone => text()();
+  TextColumn get email => text().nullable()();
+  BoolColumn get knowsAboutDiagnosis =>
+      boolean().withDefault(const Constant(false))();
+  BoolColumn get knowsAboutParts =>
+      boolean().withDefault(const Constant(false))();
+  BoolColumn get knowsAboutTrauma =>
+      boolean().withDefault(const Constant(false))();
+  TextColumn get preferredContactMethod =>
+      text().withDefault(const Constant('Phone'))();
+  TextColumn get availableHours => text().nullable()();
+  TextColumn get notes => text().nullable()();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}

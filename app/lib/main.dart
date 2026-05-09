@@ -4,6 +4,7 @@ import 'core/database/database.dart';
 import 'features/parts/screens/parts_screen.dart';
 import 'features/switch_tracker/screens/switch_tracker_screen.dart';
 import 'features/emergency_card/screens/emergency_card_screen.dart';
+import 'features/emergency_card/screens/emergency_contacts_screen.dart';
 
 final databaseProvider = Provider<AppDatabase>((ref) {
   final db = AppDatabase();
@@ -50,6 +51,7 @@ class _MainShellState extends State<MainShell> {
     SwitchTrackerScreen(),
     PartsScreen(),
     EmergencyCardScreen(),
+    EmergencyContactsScreen(),
   ];
 
   @override
@@ -63,6 +65,7 @@ class _MainShellState extends State<MainShell> {
           NavigationDestination(icon: Icon(Icons.swap_horiz), label: 'Jetzt'),
           NavigationDestination(icon: Icon(Icons.people), label: 'Anteile'),
           NavigationDestination(icon: Icon(Icons.emergency), label: 'Notfall'),
+          NavigationDestination(icon: Icon(Icons.contacts), label: 'Kontakte'),
         ],
       ),
     );

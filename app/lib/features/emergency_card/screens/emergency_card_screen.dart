@@ -6,6 +6,7 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import '../../parts/parts_provider.dart';
 import '../../parts/trigger_provider.dart';
+import '../emergency_contacts_provider.dart';
 import '../../../core/database/database.dart';
 import '../../../main.dart';
 
@@ -15,6 +16,7 @@ class EmergencyCardScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final partsAsync = ref.watch(partsProvider);
+    final contactsAsync = ref.watch(emergencyContactsProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -43,6 +45,7 @@ class EmergencyCardScreen extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Header
                 _CardSection(
                   color: Colors.red.shade50,
                   child: Column(
@@ -76,6 +79,8 @@ class EmergencyCardScreen extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(height: 16),
+
+                // Anteile
                 Text(
                   'Bekannte Anteile',
                   style: Theme.of(context).textTheme.titleSmall,
@@ -95,7 +100,10 @@ class EmergencyCardScreen extends ConsumerWidget {
                   ...emergencyParts.map(
                     (part) => _PartTileWithTriggers(part: part),
                   ),
+
                 const SizedBox(height: 16),
+
+                // Ersthelfer-Hinweise
                 Text(
                   'Hinweise für Ersthelfer',
                   style: Theme.of(context).textTheme.titleSmall,
@@ -132,6 +140,100 @@ class EmergencyCardScreen extends ConsumerWidget {
                     ],
                   ),
                 ),
+
+                const SizedBox(height: 16),
+
+                // Notfallkontakte
+                Text(
+                  'Notfallkontakte',
+                  style: Theme.of(context).textTheme.titleSmall,
+                ),
+                const SizedBox(height: 8),
+                contactsAsync.when(
+                  loading: () => const CircularProgressIndicator(),
+                  error: (e, _) => Text('Fehler: $e'),
+                  data: (contacts) {
+                    if (contacts.isEmpty) {
+                      return const Card(
+                        child: Padding(
+                          padding: EdgeInsets.all(16),
+                          child: Text('Keine Notfallkontakte hinterlegt.'),
+                        ),
+                      );
+                    }
+                    return Column(
+                      children: contacts.asMap().entries.map((entry) {
+                        final i = entry.key;
+                        final c = entry.value;
+                        return Card(
+                          margin: const EdgeInsets.only(bottom: 8),
+                          child: Padding(
+                            padding: const EdgeInsets.all(12),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    CircleAvatar(
+                                      radius: 14,
+                                      child: Text(
+                                        '${i + 1}',
+                                        style: const TextStyle(fontSize: 11),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            c.name,
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          Text(
+                                            c.relationship,
+                                            style: const TextStyle(
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    Text(
+                                      c.phone,
+                                      style: const TextStyle(fontSize: 12),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 6),
+                                Wrap(
+                                  spacing: 6,
+                                  children: [
+                                    _KnowledgeChip(
+                                      'Diagnose',
+                                      c.knowsAboutDiagnosis,
+                                    ),
+                                    _KnowledgeChip(
+                                      'Anteile',
+                                      c.knowsAboutParts,
+                                    ),
+                                    _KnowledgeChip(
+                                      'Trauma',
+                                      c.knowsAboutTrauma,
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    );
+                  },
+                ),
               ],
             ),
           );
@@ -163,6 +265,13 @@ class EmergencyCardScreen extends ConsumerWidget {
               .get();
       triggerMap[part.id] = triggers;
     }
+
+    final contacts =
+        await (ref
+                .read(databaseProvider)
+                .select(ref.read(databaseProvider).emergencyContacts)
+              ..orderBy([(t) => OrderingTerm.asc(t.rank)]))
+            .get();
 
     final doc = pw.Document();
     doc.addPage(
@@ -260,6 +369,39 @@ class EmergencyCardScreen extends ConsumerWidget {
                 '· Verwirrung oder Gedächtnislücken sind Teil der Störung',
               ),
               pw.Text('· Nicht auf Konsistenz bestehen oder konfrontieren'),
+              if (contacts.isNotEmpty) ...[
+                pw.SizedBox(height: 16),
+                pw.Text(
+                  'Notfallkontakte',
+                  style: pw.TextStyle(
+                    fontWeight: pw.FontWeight.bold,
+                    fontSize: 14,
+                  ),
+                ),
+                pw.SizedBox(height: 8),
+                ...contacts.asMap().entries.map(
+                  (entry) => pw.Padding(
+                    padding: const pw.EdgeInsets.only(bottom: 6),
+                    child: pw.Column(
+                      crossAxisAlignment: pw.CrossAxisAlignment.start,
+                      children: [
+                        pw.Text(
+                          '${entry.key + 1}. ${entry.value.name} (${entry.value.relationship}) – ${entry.value.phone}',
+                          style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+                        ),
+                        pw.Text(
+                          'Kennt: '
+                          '${entry.value.knowsAboutDiagnosis ? "Diagnose " : ""}'
+                          '${entry.value.knowsAboutParts ? "Anteile " : ""}'
+                          '${entry.value.knowsAboutTrauma ? "Trauma" : ""}'
+                          '${!entry.value.knowsAboutDiagnosis && !entry.value.knowsAboutParts && !entry.value.knowsAboutTrauma ? "nichts" : ""}',
+                          style: const pw.TextStyle(fontSize: 10),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ],
           );
         },
@@ -369,6 +511,28 @@ class _PartTileWithTriggers extends ConsumerWidget {
       'Critical' => Colors.red.shade900,
       _ => Colors.grey,
     };
+  }
+}
+
+class _KnowledgeChip extends StatelessWidget {
+  final String label;
+  final bool knows;
+
+  const _KnowledgeChip(this.label, this.knows);
+
+  @override
+  Widget build(BuildContext context) {
+    return Chip(
+      avatar: Icon(
+        knows ? Icons.check_circle : Icons.cancel,
+        size: 14,
+        color: knows ? Colors.green.shade700 : Colors.red.shade700,
+      ),
+      label: Text(label, style: const TextStyle(fontSize: 10)),
+      backgroundColor: knows ? Colors.green.shade50 : Colors.red.shade50,
+      padding: EdgeInsets.zero,
+      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+    );
   }
 }
 

@@ -2925,6 +2925,790 @@ class TriggerEntriesCompanion extends UpdateCompanion<TriggerEntryData> {
   }
 }
 
+class $EmergencyContactsTable extends EmergencyContacts
+    with TableInfo<$EmergencyContactsTable, EmergencyContactData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $EmergencyContactsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    clientDefault: () => DateTime.now().millisecondsSinceEpoch.toString(),
+  );
+  static const VerificationMeta _rankMeta = const VerificationMeta('rank');
+  @override
+  late final GeneratedColumn<int> rank = GeneratedColumn<int>(
+    'rank',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _relationshipMeta = const VerificationMeta(
+    'relationship',
+  );
+  @override
+  late final GeneratedColumn<String> relationship = GeneratedColumn<String>(
+    'relationship',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _phoneMeta = const VerificationMeta('phone');
+  @override
+  late final GeneratedColumn<String> phone = GeneratedColumn<String>(
+    'phone',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _emailMeta = const VerificationMeta('email');
+  @override
+  late final GeneratedColumn<String> email = GeneratedColumn<String>(
+    'email',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _knowsAboutDiagnosisMeta =
+      const VerificationMeta('knowsAboutDiagnosis');
+  @override
+  late final GeneratedColumn<bool> knowsAboutDiagnosis = GeneratedColumn<bool>(
+    'knows_about_diagnosis',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("knows_about_diagnosis" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _knowsAboutPartsMeta = const VerificationMeta(
+    'knowsAboutParts',
+  );
+  @override
+  late final GeneratedColumn<bool> knowsAboutParts = GeneratedColumn<bool>(
+    'knows_about_parts',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("knows_about_parts" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _knowsAboutTraumaMeta = const VerificationMeta(
+    'knowsAboutTrauma',
+  );
+  @override
+  late final GeneratedColumn<bool> knowsAboutTrauma = GeneratedColumn<bool>(
+    'knows_about_trauma',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("knows_about_trauma" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _preferredContactMethodMeta =
+      const VerificationMeta('preferredContactMethod');
+  @override
+  late final GeneratedColumn<String> preferredContactMethod =
+      GeneratedColumn<String>(
+        'preferred_contact_method',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+        defaultValue: const Constant('Phone'),
+      );
+  static const VerificationMeta _availableHoursMeta = const VerificationMeta(
+    'availableHours',
+  );
+  @override
+  late final GeneratedColumn<String> availableHours = GeneratedColumn<String>(
+    'available_hours',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _notesMeta = const VerificationMeta('notes');
+  @override
+  late final GeneratedColumn<String> notes = GeneratedColumn<String>(
+    'notes',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    rank,
+    name,
+    relationship,
+    phone,
+    email,
+    knowsAboutDiagnosis,
+    knowsAboutParts,
+    knowsAboutTrauma,
+    preferredContactMethod,
+    availableHours,
+    notes,
+    createdAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'emergency_contacts';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<EmergencyContactData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('rank')) {
+      context.handle(
+        _rankMeta,
+        rank.isAcceptableOrUnknown(data['rank']!, _rankMeta),
+      );
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('relationship')) {
+      context.handle(
+        _relationshipMeta,
+        relationship.isAcceptableOrUnknown(
+          data['relationship']!,
+          _relationshipMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_relationshipMeta);
+    }
+    if (data.containsKey('phone')) {
+      context.handle(
+        _phoneMeta,
+        phone.isAcceptableOrUnknown(data['phone']!, _phoneMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_phoneMeta);
+    }
+    if (data.containsKey('email')) {
+      context.handle(
+        _emailMeta,
+        email.isAcceptableOrUnknown(data['email']!, _emailMeta),
+      );
+    }
+    if (data.containsKey('knows_about_diagnosis')) {
+      context.handle(
+        _knowsAboutDiagnosisMeta,
+        knowsAboutDiagnosis.isAcceptableOrUnknown(
+          data['knows_about_diagnosis']!,
+          _knowsAboutDiagnosisMeta,
+        ),
+      );
+    }
+    if (data.containsKey('knows_about_parts')) {
+      context.handle(
+        _knowsAboutPartsMeta,
+        knowsAboutParts.isAcceptableOrUnknown(
+          data['knows_about_parts']!,
+          _knowsAboutPartsMeta,
+        ),
+      );
+    }
+    if (data.containsKey('knows_about_trauma')) {
+      context.handle(
+        _knowsAboutTraumaMeta,
+        knowsAboutTrauma.isAcceptableOrUnknown(
+          data['knows_about_trauma']!,
+          _knowsAboutTraumaMeta,
+        ),
+      );
+    }
+    if (data.containsKey('preferred_contact_method')) {
+      context.handle(
+        _preferredContactMethodMeta,
+        preferredContactMethod.isAcceptableOrUnknown(
+          data['preferred_contact_method']!,
+          _preferredContactMethodMeta,
+        ),
+      );
+    }
+    if (data.containsKey('available_hours')) {
+      context.handle(
+        _availableHoursMeta,
+        availableHours.isAcceptableOrUnknown(
+          data['available_hours']!,
+          _availableHoursMeta,
+        ),
+      );
+    }
+    if (data.containsKey('notes')) {
+      context.handle(
+        _notesMeta,
+        notes.isAcceptableOrUnknown(data['notes']!, _notesMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  EmergencyContactData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return EmergencyContactData(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      rank: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}rank'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      relationship: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}relationship'],
+      )!,
+      phone: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}phone'],
+      )!,
+      email: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}email'],
+      ),
+      knowsAboutDiagnosis: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}knows_about_diagnosis'],
+      )!,
+      knowsAboutParts: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}knows_about_parts'],
+      )!,
+      knowsAboutTrauma: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}knows_about_trauma'],
+      )!,
+      preferredContactMethod: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}preferred_contact_method'],
+      )!,
+      availableHours: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}available_hours'],
+      ),
+      notes: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}notes'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $EmergencyContactsTable createAlias(String alias) {
+    return $EmergencyContactsTable(attachedDatabase, alias);
+  }
+}
+
+class EmergencyContactData extends DataClass
+    implements Insertable<EmergencyContactData> {
+  final String id;
+  final int rank;
+  final String name;
+  final String relationship;
+  final String phone;
+  final String? email;
+  final bool knowsAboutDiagnosis;
+  final bool knowsAboutParts;
+  final bool knowsAboutTrauma;
+  final String preferredContactMethod;
+  final String? availableHours;
+  final String? notes;
+  final DateTime createdAt;
+  const EmergencyContactData({
+    required this.id,
+    required this.rank,
+    required this.name,
+    required this.relationship,
+    required this.phone,
+    this.email,
+    required this.knowsAboutDiagnosis,
+    required this.knowsAboutParts,
+    required this.knowsAboutTrauma,
+    required this.preferredContactMethod,
+    this.availableHours,
+    this.notes,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['rank'] = Variable<int>(rank);
+    map['name'] = Variable<String>(name);
+    map['relationship'] = Variable<String>(relationship);
+    map['phone'] = Variable<String>(phone);
+    if (!nullToAbsent || email != null) {
+      map['email'] = Variable<String>(email);
+    }
+    map['knows_about_diagnosis'] = Variable<bool>(knowsAboutDiagnosis);
+    map['knows_about_parts'] = Variable<bool>(knowsAboutParts);
+    map['knows_about_trauma'] = Variable<bool>(knowsAboutTrauma);
+    map['preferred_contact_method'] = Variable<String>(preferredContactMethod);
+    if (!nullToAbsent || availableHours != null) {
+      map['available_hours'] = Variable<String>(availableHours);
+    }
+    if (!nullToAbsent || notes != null) {
+      map['notes'] = Variable<String>(notes);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  EmergencyContactsCompanion toCompanion(bool nullToAbsent) {
+    return EmergencyContactsCompanion(
+      id: Value(id),
+      rank: Value(rank),
+      name: Value(name),
+      relationship: Value(relationship),
+      phone: Value(phone),
+      email: email == null && nullToAbsent
+          ? const Value.absent()
+          : Value(email),
+      knowsAboutDiagnosis: Value(knowsAboutDiagnosis),
+      knowsAboutParts: Value(knowsAboutParts),
+      knowsAboutTrauma: Value(knowsAboutTrauma),
+      preferredContactMethod: Value(preferredContactMethod),
+      availableHours: availableHours == null && nullToAbsent
+          ? const Value.absent()
+          : Value(availableHours),
+      notes: notes == null && nullToAbsent
+          ? const Value.absent()
+          : Value(notes),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory EmergencyContactData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return EmergencyContactData(
+      id: serializer.fromJson<String>(json['id']),
+      rank: serializer.fromJson<int>(json['rank']),
+      name: serializer.fromJson<String>(json['name']),
+      relationship: serializer.fromJson<String>(json['relationship']),
+      phone: serializer.fromJson<String>(json['phone']),
+      email: serializer.fromJson<String?>(json['email']),
+      knowsAboutDiagnosis: serializer.fromJson<bool>(
+        json['knowsAboutDiagnosis'],
+      ),
+      knowsAboutParts: serializer.fromJson<bool>(json['knowsAboutParts']),
+      knowsAboutTrauma: serializer.fromJson<bool>(json['knowsAboutTrauma']),
+      preferredContactMethod: serializer.fromJson<String>(
+        json['preferredContactMethod'],
+      ),
+      availableHours: serializer.fromJson<String?>(json['availableHours']),
+      notes: serializer.fromJson<String?>(json['notes']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'rank': serializer.toJson<int>(rank),
+      'name': serializer.toJson<String>(name),
+      'relationship': serializer.toJson<String>(relationship),
+      'phone': serializer.toJson<String>(phone),
+      'email': serializer.toJson<String?>(email),
+      'knowsAboutDiagnosis': serializer.toJson<bool>(knowsAboutDiagnosis),
+      'knowsAboutParts': serializer.toJson<bool>(knowsAboutParts),
+      'knowsAboutTrauma': serializer.toJson<bool>(knowsAboutTrauma),
+      'preferredContactMethod': serializer.toJson<String>(
+        preferredContactMethod,
+      ),
+      'availableHours': serializer.toJson<String?>(availableHours),
+      'notes': serializer.toJson<String?>(notes),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  EmergencyContactData copyWith({
+    String? id,
+    int? rank,
+    String? name,
+    String? relationship,
+    String? phone,
+    Value<String?> email = const Value.absent(),
+    bool? knowsAboutDiagnosis,
+    bool? knowsAboutParts,
+    bool? knowsAboutTrauma,
+    String? preferredContactMethod,
+    Value<String?> availableHours = const Value.absent(),
+    Value<String?> notes = const Value.absent(),
+    DateTime? createdAt,
+  }) => EmergencyContactData(
+    id: id ?? this.id,
+    rank: rank ?? this.rank,
+    name: name ?? this.name,
+    relationship: relationship ?? this.relationship,
+    phone: phone ?? this.phone,
+    email: email.present ? email.value : this.email,
+    knowsAboutDiagnosis: knowsAboutDiagnosis ?? this.knowsAboutDiagnosis,
+    knowsAboutParts: knowsAboutParts ?? this.knowsAboutParts,
+    knowsAboutTrauma: knowsAboutTrauma ?? this.knowsAboutTrauma,
+    preferredContactMethod:
+        preferredContactMethod ?? this.preferredContactMethod,
+    availableHours: availableHours.present
+        ? availableHours.value
+        : this.availableHours,
+    notes: notes.present ? notes.value : this.notes,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  EmergencyContactData copyWithCompanion(EmergencyContactsCompanion data) {
+    return EmergencyContactData(
+      id: data.id.present ? data.id.value : this.id,
+      rank: data.rank.present ? data.rank.value : this.rank,
+      name: data.name.present ? data.name.value : this.name,
+      relationship: data.relationship.present
+          ? data.relationship.value
+          : this.relationship,
+      phone: data.phone.present ? data.phone.value : this.phone,
+      email: data.email.present ? data.email.value : this.email,
+      knowsAboutDiagnosis: data.knowsAboutDiagnosis.present
+          ? data.knowsAboutDiagnosis.value
+          : this.knowsAboutDiagnosis,
+      knowsAboutParts: data.knowsAboutParts.present
+          ? data.knowsAboutParts.value
+          : this.knowsAboutParts,
+      knowsAboutTrauma: data.knowsAboutTrauma.present
+          ? data.knowsAboutTrauma.value
+          : this.knowsAboutTrauma,
+      preferredContactMethod: data.preferredContactMethod.present
+          ? data.preferredContactMethod.value
+          : this.preferredContactMethod,
+      availableHours: data.availableHours.present
+          ? data.availableHours.value
+          : this.availableHours,
+      notes: data.notes.present ? data.notes.value : this.notes,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('EmergencyContactData(')
+          ..write('id: $id, ')
+          ..write('rank: $rank, ')
+          ..write('name: $name, ')
+          ..write('relationship: $relationship, ')
+          ..write('phone: $phone, ')
+          ..write('email: $email, ')
+          ..write('knowsAboutDiagnosis: $knowsAboutDiagnosis, ')
+          ..write('knowsAboutParts: $knowsAboutParts, ')
+          ..write('knowsAboutTrauma: $knowsAboutTrauma, ')
+          ..write('preferredContactMethod: $preferredContactMethod, ')
+          ..write('availableHours: $availableHours, ')
+          ..write('notes: $notes, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    rank,
+    name,
+    relationship,
+    phone,
+    email,
+    knowsAboutDiagnosis,
+    knowsAboutParts,
+    knowsAboutTrauma,
+    preferredContactMethod,
+    availableHours,
+    notes,
+    createdAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is EmergencyContactData &&
+          other.id == this.id &&
+          other.rank == this.rank &&
+          other.name == this.name &&
+          other.relationship == this.relationship &&
+          other.phone == this.phone &&
+          other.email == this.email &&
+          other.knowsAboutDiagnosis == this.knowsAboutDiagnosis &&
+          other.knowsAboutParts == this.knowsAboutParts &&
+          other.knowsAboutTrauma == this.knowsAboutTrauma &&
+          other.preferredContactMethod == this.preferredContactMethod &&
+          other.availableHours == this.availableHours &&
+          other.notes == this.notes &&
+          other.createdAt == this.createdAt);
+}
+
+class EmergencyContactsCompanion extends UpdateCompanion<EmergencyContactData> {
+  final Value<String> id;
+  final Value<int> rank;
+  final Value<String> name;
+  final Value<String> relationship;
+  final Value<String> phone;
+  final Value<String?> email;
+  final Value<bool> knowsAboutDiagnosis;
+  final Value<bool> knowsAboutParts;
+  final Value<bool> knowsAboutTrauma;
+  final Value<String> preferredContactMethod;
+  final Value<String?> availableHours;
+  final Value<String?> notes;
+  final Value<DateTime> createdAt;
+  final Value<int> rowid;
+  const EmergencyContactsCompanion({
+    this.id = const Value.absent(),
+    this.rank = const Value.absent(),
+    this.name = const Value.absent(),
+    this.relationship = const Value.absent(),
+    this.phone = const Value.absent(),
+    this.email = const Value.absent(),
+    this.knowsAboutDiagnosis = const Value.absent(),
+    this.knowsAboutParts = const Value.absent(),
+    this.knowsAboutTrauma = const Value.absent(),
+    this.preferredContactMethod = const Value.absent(),
+    this.availableHours = const Value.absent(),
+    this.notes = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  EmergencyContactsCompanion.insert({
+    this.id = const Value.absent(),
+    this.rank = const Value.absent(),
+    required String name,
+    required String relationship,
+    required String phone,
+    this.email = const Value.absent(),
+    this.knowsAboutDiagnosis = const Value.absent(),
+    this.knowsAboutParts = const Value.absent(),
+    this.knowsAboutTrauma = const Value.absent(),
+    this.preferredContactMethod = const Value.absent(),
+    this.availableHours = const Value.absent(),
+    this.notes = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : name = Value(name),
+       relationship = Value(relationship),
+       phone = Value(phone);
+  static Insertable<EmergencyContactData> custom({
+    Expression<String>? id,
+    Expression<int>? rank,
+    Expression<String>? name,
+    Expression<String>? relationship,
+    Expression<String>? phone,
+    Expression<String>? email,
+    Expression<bool>? knowsAboutDiagnosis,
+    Expression<bool>? knowsAboutParts,
+    Expression<bool>? knowsAboutTrauma,
+    Expression<String>? preferredContactMethod,
+    Expression<String>? availableHours,
+    Expression<String>? notes,
+    Expression<DateTime>? createdAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (rank != null) 'rank': rank,
+      if (name != null) 'name': name,
+      if (relationship != null) 'relationship': relationship,
+      if (phone != null) 'phone': phone,
+      if (email != null) 'email': email,
+      if (knowsAboutDiagnosis != null)
+        'knows_about_diagnosis': knowsAboutDiagnosis,
+      if (knowsAboutParts != null) 'knows_about_parts': knowsAboutParts,
+      if (knowsAboutTrauma != null) 'knows_about_trauma': knowsAboutTrauma,
+      if (preferredContactMethod != null)
+        'preferred_contact_method': preferredContactMethod,
+      if (availableHours != null) 'available_hours': availableHours,
+      if (notes != null) 'notes': notes,
+      if (createdAt != null) 'created_at': createdAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  EmergencyContactsCompanion copyWith({
+    Value<String>? id,
+    Value<int>? rank,
+    Value<String>? name,
+    Value<String>? relationship,
+    Value<String>? phone,
+    Value<String?>? email,
+    Value<bool>? knowsAboutDiagnosis,
+    Value<bool>? knowsAboutParts,
+    Value<bool>? knowsAboutTrauma,
+    Value<String>? preferredContactMethod,
+    Value<String?>? availableHours,
+    Value<String?>? notes,
+    Value<DateTime>? createdAt,
+    Value<int>? rowid,
+  }) {
+    return EmergencyContactsCompanion(
+      id: id ?? this.id,
+      rank: rank ?? this.rank,
+      name: name ?? this.name,
+      relationship: relationship ?? this.relationship,
+      phone: phone ?? this.phone,
+      email: email ?? this.email,
+      knowsAboutDiagnosis: knowsAboutDiagnosis ?? this.knowsAboutDiagnosis,
+      knowsAboutParts: knowsAboutParts ?? this.knowsAboutParts,
+      knowsAboutTrauma: knowsAboutTrauma ?? this.knowsAboutTrauma,
+      preferredContactMethod:
+          preferredContactMethod ?? this.preferredContactMethod,
+      availableHours: availableHours ?? this.availableHours,
+      notes: notes ?? this.notes,
+      createdAt: createdAt ?? this.createdAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (rank.present) {
+      map['rank'] = Variable<int>(rank.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (relationship.present) {
+      map['relationship'] = Variable<String>(relationship.value);
+    }
+    if (phone.present) {
+      map['phone'] = Variable<String>(phone.value);
+    }
+    if (email.present) {
+      map['email'] = Variable<String>(email.value);
+    }
+    if (knowsAboutDiagnosis.present) {
+      map['knows_about_diagnosis'] = Variable<bool>(knowsAboutDiagnosis.value);
+    }
+    if (knowsAboutParts.present) {
+      map['knows_about_parts'] = Variable<bool>(knowsAboutParts.value);
+    }
+    if (knowsAboutTrauma.present) {
+      map['knows_about_trauma'] = Variable<bool>(knowsAboutTrauma.value);
+    }
+    if (preferredContactMethod.present) {
+      map['preferred_contact_method'] = Variable<String>(
+        preferredContactMethod.value,
+      );
+    }
+    if (availableHours.present) {
+      map['available_hours'] = Variable<String>(availableHours.value);
+    }
+    if (notes.present) {
+      map['notes'] = Variable<String>(notes.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('EmergencyContactsCompanion(')
+          ..write('id: $id, ')
+          ..write('rank: $rank, ')
+          ..write('name: $name, ')
+          ..write('relationship: $relationship, ')
+          ..write('phone: $phone, ')
+          ..write('email: $email, ')
+          ..write('knowsAboutDiagnosis: $knowsAboutDiagnosis, ')
+          ..write('knowsAboutParts: $knowsAboutParts, ')
+          ..write('knowsAboutTrauma: $knowsAboutTrauma, ')
+          ..write('preferredContactMethod: $preferredContactMethod, ')
+          ..write('availableHours: $availableHours, ')
+          ..write('notes: $notes, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -2935,6 +3719,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     this,
   );
   late final $TriggerEntriesTable triggerEntries = $TriggerEntriesTable(this);
+  late final $EmergencyContactsTable emergencyContacts =
+      $EmergencyContactsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -2945,6 +3731,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     switchEvents,
     consentProfiles,
     triggerEntries,
+    emergencyContacts,
   ];
 }
 
@@ -5056,6 +5843,383 @@ typedef $$TriggerEntriesTableProcessedTableManager =
       TriggerEntryData,
       PrefetchHooks Function({bool partId})
     >;
+typedef $$EmergencyContactsTableCreateCompanionBuilder =
+    EmergencyContactsCompanion Function({
+      Value<String> id,
+      Value<int> rank,
+      required String name,
+      required String relationship,
+      required String phone,
+      Value<String?> email,
+      Value<bool> knowsAboutDiagnosis,
+      Value<bool> knowsAboutParts,
+      Value<bool> knowsAboutTrauma,
+      Value<String> preferredContactMethod,
+      Value<String?> availableHours,
+      Value<String?> notes,
+      Value<DateTime> createdAt,
+      Value<int> rowid,
+    });
+typedef $$EmergencyContactsTableUpdateCompanionBuilder =
+    EmergencyContactsCompanion Function({
+      Value<String> id,
+      Value<int> rank,
+      Value<String> name,
+      Value<String> relationship,
+      Value<String> phone,
+      Value<String?> email,
+      Value<bool> knowsAboutDiagnosis,
+      Value<bool> knowsAboutParts,
+      Value<bool> knowsAboutTrauma,
+      Value<String> preferredContactMethod,
+      Value<String?> availableHours,
+      Value<String?> notes,
+      Value<DateTime> createdAt,
+      Value<int> rowid,
+    });
+
+class $$EmergencyContactsTableFilterComposer
+    extends Composer<_$AppDatabase, $EmergencyContactsTable> {
+  $$EmergencyContactsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get rank => $composableBuilder(
+    column: $table.rank,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get relationship => $composableBuilder(
+    column: $table.relationship,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get phone => $composableBuilder(
+    column: $table.phone,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get email => $composableBuilder(
+    column: $table.email,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get knowsAboutDiagnosis => $composableBuilder(
+    column: $table.knowsAboutDiagnosis,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get knowsAboutParts => $composableBuilder(
+    column: $table.knowsAboutParts,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get knowsAboutTrauma => $composableBuilder(
+    column: $table.knowsAboutTrauma,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get preferredContactMethod => $composableBuilder(
+    column: $table.preferredContactMethod,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get availableHours => $composableBuilder(
+    column: $table.availableHours,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get notes => $composableBuilder(
+    column: $table.notes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$EmergencyContactsTableOrderingComposer
+    extends Composer<_$AppDatabase, $EmergencyContactsTable> {
+  $$EmergencyContactsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get rank => $composableBuilder(
+    column: $table.rank,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get relationship => $composableBuilder(
+    column: $table.relationship,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get phone => $composableBuilder(
+    column: $table.phone,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get email => $composableBuilder(
+    column: $table.email,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get knowsAboutDiagnosis => $composableBuilder(
+    column: $table.knowsAboutDiagnosis,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get knowsAboutParts => $composableBuilder(
+    column: $table.knowsAboutParts,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get knowsAboutTrauma => $composableBuilder(
+    column: $table.knowsAboutTrauma,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get preferredContactMethod => $composableBuilder(
+    column: $table.preferredContactMethod,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get availableHours => $composableBuilder(
+    column: $table.availableHours,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get notes => $composableBuilder(
+    column: $table.notes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$EmergencyContactsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $EmergencyContactsTable> {
+  $$EmergencyContactsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get rank =>
+      $composableBuilder(column: $table.rank, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<String> get relationship => $composableBuilder(
+    column: $table.relationship,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get phone =>
+      $composableBuilder(column: $table.phone, builder: (column) => column);
+
+  GeneratedColumn<String> get email =>
+      $composableBuilder(column: $table.email, builder: (column) => column);
+
+  GeneratedColumn<bool> get knowsAboutDiagnosis => $composableBuilder(
+    column: $table.knowsAboutDiagnosis,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get knowsAboutParts => $composableBuilder(
+    column: $table.knowsAboutParts,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get knowsAboutTrauma => $composableBuilder(
+    column: $table.knowsAboutTrauma,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get preferredContactMethod => $composableBuilder(
+    column: $table.preferredContactMethod,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get availableHours => $composableBuilder(
+    column: $table.availableHours,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get notes =>
+      $composableBuilder(column: $table.notes, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+}
+
+class $$EmergencyContactsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $EmergencyContactsTable,
+          EmergencyContactData,
+          $$EmergencyContactsTableFilterComposer,
+          $$EmergencyContactsTableOrderingComposer,
+          $$EmergencyContactsTableAnnotationComposer,
+          $$EmergencyContactsTableCreateCompanionBuilder,
+          $$EmergencyContactsTableUpdateCompanionBuilder,
+          (
+            EmergencyContactData,
+            BaseReferences<
+              _$AppDatabase,
+              $EmergencyContactsTable,
+              EmergencyContactData
+            >,
+          ),
+          EmergencyContactData,
+          PrefetchHooks Function()
+        > {
+  $$EmergencyContactsTableTableManager(
+    _$AppDatabase db,
+    $EmergencyContactsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$EmergencyContactsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$EmergencyContactsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$EmergencyContactsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<int> rank = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<String> relationship = const Value.absent(),
+                Value<String> phone = const Value.absent(),
+                Value<String?> email = const Value.absent(),
+                Value<bool> knowsAboutDiagnosis = const Value.absent(),
+                Value<bool> knowsAboutParts = const Value.absent(),
+                Value<bool> knowsAboutTrauma = const Value.absent(),
+                Value<String> preferredContactMethod = const Value.absent(),
+                Value<String?> availableHours = const Value.absent(),
+                Value<String?> notes = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => EmergencyContactsCompanion(
+                id: id,
+                rank: rank,
+                name: name,
+                relationship: relationship,
+                phone: phone,
+                email: email,
+                knowsAboutDiagnosis: knowsAboutDiagnosis,
+                knowsAboutParts: knowsAboutParts,
+                knowsAboutTrauma: knowsAboutTrauma,
+                preferredContactMethod: preferredContactMethod,
+                availableHours: availableHours,
+                notes: notes,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<int> rank = const Value.absent(),
+                required String name,
+                required String relationship,
+                required String phone,
+                Value<String?> email = const Value.absent(),
+                Value<bool> knowsAboutDiagnosis = const Value.absent(),
+                Value<bool> knowsAboutParts = const Value.absent(),
+                Value<bool> knowsAboutTrauma = const Value.absent(),
+                Value<String> preferredContactMethod = const Value.absent(),
+                Value<String?> availableHours = const Value.absent(),
+                Value<String?> notes = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => EmergencyContactsCompanion.insert(
+                id: id,
+                rank: rank,
+                name: name,
+                relationship: relationship,
+                phone: phone,
+                email: email,
+                knowsAboutDiagnosis: knowsAboutDiagnosis,
+                knowsAboutParts: knowsAboutParts,
+                knowsAboutTrauma: knowsAboutTrauma,
+                preferredContactMethod: preferredContactMethod,
+                availableHours: availableHours,
+                notes: notes,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$EmergencyContactsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $EmergencyContactsTable,
+      EmergencyContactData,
+      $$EmergencyContactsTableFilterComposer,
+      $$EmergencyContactsTableOrderingComposer,
+      $$EmergencyContactsTableAnnotationComposer,
+      $$EmergencyContactsTableCreateCompanionBuilder,
+      $$EmergencyContactsTableUpdateCompanionBuilder,
+      (
+        EmergencyContactData,
+        BaseReferences<
+          _$AppDatabase,
+          $EmergencyContactsTable,
+          EmergencyContactData
+        >,
+      ),
+      EmergencyContactData,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -5070,4 +6234,6 @@ class $AppDatabaseManager {
       $$ConsentProfilesTableTableManager(_db, _db.consentProfiles);
   $$TriggerEntriesTableTableManager get triggerEntries =>
       $$TriggerEntriesTableTableManager(_db, _db.triggerEntries);
+  $$EmergencyContactsTableTableManager get emergencyContacts =>
+      $$EmergencyContactsTableTableManager(_db, _db.emergencyContacts);
 }
