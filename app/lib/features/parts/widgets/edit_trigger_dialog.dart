@@ -78,7 +78,7 @@ class _EditTriggerDialogState extends ConsumerState<EditTriggerDialog> {
             ),
             const SizedBox(height: 8),
             DropdownButtonFormField<String>(
-              value: _type,
+              initialValue: _type,
               decoration: const InputDecoration(labelText: 'Typ'),
               items: const [
                 DropdownMenuItem(value: 'Sensory', child: Text('Sensorisch')),
@@ -94,7 +94,7 @@ class _EditTriggerDialogState extends ConsumerState<EditTriggerDialog> {
             ),
             const SizedBox(height: 8),
             DropdownButtonFormField<String>(
-              value: _severity,
+              initialValue: _severity,
               decoration: const InputDecoration(labelText: 'Schweregrad'),
               items: const [
                 DropdownMenuItem(value: 'Mild', child: Text('Mild')),

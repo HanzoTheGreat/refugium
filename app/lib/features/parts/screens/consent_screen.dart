@@ -44,7 +44,7 @@ class _ConsentScreenState extends ConsumerState<ConsentScreen> {
       consentProfileProvider(widget.partId).future,
     );
     if (profile != null) {
-      final p = profile as ConsentProfileData;
+      final p = profile;
       setState(() {
         _touchGeneral = p.touchGeneral;
         _touchIntimate = p.touchIntimate;

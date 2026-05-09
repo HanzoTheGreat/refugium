@@ -102,7 +102,7 @@ class _EditPartScreenState extends ConsumerState<EditPartScreen> {
           _buildField('Ungefähres Alter', _apparentAgeController),
           const SizedBox(height: 16),
           DropdownButtonFormField<String>(
-            value: _visibility,
+            initialValue: _visibility,
             decoration: const InputDecoration(
               labelText: 'Sichtbarkeit',
               border: OutlineInputBorder(),

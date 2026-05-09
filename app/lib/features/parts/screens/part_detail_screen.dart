@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../core/database/database.dart';
 import '../parts_provider.dart';
 import 'edit_part_screen.dart';
 import 'consent_screen.dart';

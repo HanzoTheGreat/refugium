@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../parts/parts_provider.dart';
 import '../../parts/consent_provider.dart';
-import '../../../core/database/database.dart';
 import '../switch_tracker_provider.dart';
 
 class SwitchTrackerScreen extends ConsumerWidget {

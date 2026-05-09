@@ -256,8 +256,9 @@ class _AddEditContactDialogState extends ConsumerState<AddEditContactDialog> {
 
   Future<void> _save() async {
     if (_nameController.text.trim().isEmpty ||
-        _phoneController.text.trim().isEmpty)
+        _phoneController.text.trim().isEmpty) {
       return;
+    }
     setState(() => _saving = true);
 
     if (_isEdit) {
@@ -321,7 +322,7 @@ class _AddEditContactDialogState extends ConsumerState<AddEditContactDialog> {
             _field('Erreichbar', _hoursController, hint: 'z.B. Mo–Fr 9–18 Uhr'),
             const SizedBox(height: 8),
             DropdownButtonFormField<String>(
-              value: _preferredMethod,
+              initialValue: _preferredMethod,
               decoration: const InputDecoration(
                 labelText: 'Bevorzugter Kontaktweg',
               ),

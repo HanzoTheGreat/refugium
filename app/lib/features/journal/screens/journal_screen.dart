@@ -232,7 +232,7 @@ class _WriteEntrySheetState extends ConsumerState<_WriteEntrySheet> {
           // Anteil wählen
           partsAsync.maybeWhen(
             data: (parts) => DropdownButtonFormField<String?>(
-              value: _selectedPartId,
+              initialValue: _selectedPartId,
               decoration: const InputDecoration(labelText: 'Anteil (optional)'),
               items: [
                 const DropdownMenuItem(value: null, child: Text('Kein Anteil')),
