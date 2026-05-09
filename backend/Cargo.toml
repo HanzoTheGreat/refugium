@@ -1,0 +1,42 @@
+[package]
+name = "refugium-server"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+# Web Framework
+axum = { version = "0.8", features = ["ws"] }
+tokio = { version = "1", features = ["full"] }
+tower = "0.5"
+tower-http = { version = "0.6", features = ["cors", "trace"] }
+
+# TLS
+axum-server = { version = "0.7", features = ["tls-rustls"] }
+rustls = "0.23"
+
+# Datenbank
+sqlx = { version = "0.8", features = ["runtime-tokio", "sqlite", "migrate", "uuid", "chrono"] }
+
+# Kryptographie
+ed25519-dalek = { version = "2", features = ["rand_core"] }
+x25519-dalek = { version = "2", features = ["static_secrets"] }
+chacha20poly1305 = "0.10"
+rand = "0.8"
+rand_core = { version = "0.6", features = ["getrandom"] }
+
+# Serialisierung
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+uuid = { version = "1", features = ["v4", "serde"] }
+chrono = { version = "0.4", features = ["serde"] }
+base64 = "0.22"
+
+# Logging
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+# Konfiguration
+dotenvy = "0.15"
+
+# Kommunikation
+reqwest = { version = "0.12", features = ["json"] }

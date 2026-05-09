@@ -1,0 +1,31 @@
+   Compiling chrono v0.4.44
+   Compiling sqlx-core v0.8.6
+   Compiling sqlx-sqlite v0.8.6
+   Compiling sqlx-macros-core v0.8.6
+   Compiling sqlx-macros v0.8.6
+   Compiling sqlx v0.8.6
+   Compiling refugium-server v0.1.0 (/home/necrohanzo/refugium/backend)
+warning: unused import: `uuid::Uuid`
+ --> src/models/mod.rs:3:5
+  |
+3 | use uuid::Uuid;
+  |     ^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `std::path::Path`
+ --> src/db/mod.rs:2:5
+  |
+2 | use std::path::Path;
+  |     ^^^^^^^^^^^^^^^
+
+warning: struct `Device` is never constructed
+ --> src/models/mod.rs:6:12
+  |
+6 | pub struct Device {
+  |            ^^^^^^
+  |
+  = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: `refugium-server` (bin "refugium-server") generated 3 warnings (run `cargo fix --bin "refugium-server" -p refugium-server` to apply 2 suggestions)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 17.69s
