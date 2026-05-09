@@ -7,6 +7,7 @@ import 'package:printing/printing.dart';
 import '../../parts/parts_provider.dart';
 import '../../parts/trigger_provider.dart';
 import '../emergency_contacts_provider.dart';
+import '../medical_record_provider.dart';
 import '../../../core/database/database.dart';
 import '../../../main.dart';
 
@@ -17,6 +18,7 @@ class EmergencyCardScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final partsAsync = ref.watch(partsProvider);
     final contactsAsync = ref.watch(emergencyContactsProvider);
+    final medicalAsync = ref.watch(medicalRecordProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -78,6 +80,54 @@ class EmergencyCardScreen extends ConsumerWidget {
                     ],
                   ),
                 ),
+
+                // Medizinische Daten
+                medicalAsync.maybeWhen(
+                  data: (record) {
+                    if (record == null) return const SizedBox.shrink();
+                    final hasData =
+                        record.bloodType != null ||
+                        record.allergies != null ||
+                        record.medications != null ||
+                        record.healthInsuranceProvider != null;
+                    if (!hasData) return const SizedBox.shrink();
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 16),
+                        Text(
+                          'Medizinische Daten',
+                          style: Theme.of(context).textTheme.titleSmall,
+                        ),
+                        const SizedBox(height: 8),
+                        Card(
+                          child: Padding(
+                            padding: const EdgeInsets.all(12),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                if (record.bloodType != null)
+                                  _MedRow('Blutgruppe', record.bloodType!),
+                                if (record.allergies != null)
+                                  _MedRow('Allergien', record.allergies!),
+                                if (record.medications != null)
+                                  _MedRow('Medikation', record.medications!),
+                                if (record.healthInsuranceProvider != null)
+                                  _MedRow(
+                                    'Krankenkasse',
+                                    '${record.healthInsuranceProvider!}'
+                                        '${record.healthInsuranceMemberId != null ? " · ${record.healthInsuranceMemberId}" : ""}',
+                                  ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                  orElse: () => const SizedBox.shrink(),
+                ),
+
                 const SizedBox(height: 16),
 
                 // Anteile
@@ -273,6 +323,11 @@ class EmergencyCardScreen extends ConsumerWidget {
               ..orderBy([(t) => OrderingTerm.asc(t.rank)]))
             .get();
 
+    final medical = await ref
+        .read(databaseProvider)
+        .select(ref.read(databaseProvider).medicalRecords)
+        .getSingleOrNull();
+
     final doc = pw.Document();
     doc.addPage(
       pw.Page(
@@ -281,6 +336,7 @@ class EmergencyCardScreen extends ConsumerWidget {
           return pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
+              // Header
               pw.Container(
                 padding: const pw.EdgeInsets.all(12),
                 decoration: pw.BoxDecoration(
@@ -309,12 +365,38 @@ class EmergencyCardScreen extends ConsumerWidget {
                   ],
                 ),
               ),
-              pw.SizedBox(height: 16),
+              pw.SizedBox(height: 12),
+
+              // Medizinische Daten
+              if (medical != null) ...[
+                pw.Text(
+                  'Medizinische Daten',
+                  style: pw.TextStyle(
+                    fontWeight: pw.FontWeight.bold,
+                    fontSize: 13,
+                  ),
+                ),
+                pw.SizedBox(height: 4),
+                if (medical.bloodType != null)
+                  pw.Text('Blutgruppe: ${medical.bloodType}'),
+                if (medical.allergies != null)
+                  pw.Text('Allergien: ${medical.allergies}'),
+                if (medical.medications != null)
+                  pw.Text('Medikation: ${medical.medications}'),
+                if (medical.healthInsuranceProvider != null)
+                  pw.Text(
+                    'Krankenkasse: ${medical.healthInsuranceProvider}'
+                    '${medical.healthInsuranceMemberId != null ? " · ${medical.healthInsuranceMemberId}" : ""}',
+                  ),
+                pw.SizedBox(height: 12),
+              ],
+
+              // Anteile
               pw.Text(
                 'Bekannte Anteile',
                 style: pw.TextStyle(
                   fontWeight: pw.FontWeight.bold,
-                  fontSize: 14,
+                  fontSize: 13,
                 ),
               ),
               pw.SizedBox(height: 8),
@@ -323,7 +405,7 @@ class EmergencyCardScreen extends ConsumerWidget {
               else
                 ...emergencyParts.map(
                   (part) => pw.Padding(
-                    padding: const pw.EdgeInsets.only(bottom: 12),
+                    padding: const pw.EdgeInsets.only(bottom: 10),
                     child: pw.Column(
                       crossAxisAlignment: pw.CrossAxisAlignment.start,
                       children: [
@@ -351,15 +433,17 @@ class EmergencyCardScreen extends ConsumerWidget {
                     ),
                   ),
                 ),
-              pw.SizedBox(height: 16),
+              pw.SizedBox(height: 12),
+
+              // Ersthelfer
               pw.Text(
                 'Hinweise für Ersthelfer',
                 style: pw.TextStyle(
                   fontWeight: pw.FontWeight.bold,
-                  fontSize: 14,
+                  fontSize: 13,
                 ),
               ),
-              pw.SizedBox(height: 8),
+              pw.SizedBox(height: 4),
               pw.Text('· Ruhig und klar sprechen'),
               pw.Text(
                 '· Nach dem Namen fragen: "Wie darf ich Sie ansprechen?"',
@@ -369,16 +453,18 @@ class EmergencyCardScreen extends ConsumerWidget {
                 '· Verwirrung oder Gedächtnislücken sind Teil der Störung',
               ),
               pw.Text('· Nicht auf Konsistenz bestehen oder konfrontieren'),
+
+              // Notfallkontakte
               if (contacts.isNotEmpty) ...[
-                pw.SizedBox(height: 16),
+                pw.SizedBox(height: 12),
                 pw.Text(
                   'Notfallkontakte',
                   style: pw.TextStyle(
                     fontWeight: pw.FontWeight.bold,
-                    fontSize: 14,
+                    fontSize: 13,
                   ),
                 ),
-                pw.SizedBox(height: 8),
+                pw.SizedBox(height: 4),
                 ...contacts.asMap().entries.map(
                   (entry) => pw.Padding(
                     padding: const pw.EdgeInsets.only(bottom: 6),
@@ -532,6 +618,30 @@ class _KnowledgeChip extends StatelessWidget {
       backgroundColor: knows ? Colors.green.shade50 : Colors.red.shade50,
       padding: EdgeInsets.zero,
       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+    );
+  }
+}
+
+class _MedRow extends StatelessWidget {
+  final String label;
+  final String value;
+
+  const _MedRow(this.label, this.value);
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 100,
+            child: Text(label, style: Theme.of(context).textTheme.bodySmall),
+          ),
+          Expanded(child: Text(value)),
+        ],
+      ),
     );
   }
 }

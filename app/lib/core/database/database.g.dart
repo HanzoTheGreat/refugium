@@ -3709,6 +3709,664 @@ class EmergencyContactsCompanion extends UpdateCompanion<EmergencyContactData> {
   }
 }
 
+class $MedicalRecordsTable extends MedicalRecords
+    with TableInfo<$MedicalRecordsTable, MedicalRecordData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $MedicalRecordsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    clientDefault: () => DateTime.now().millisecondsSinceEpoch.toString(),
+  );
+  static const VerificationMeta _bloodTypeMeta = const VerificationMeta(
+    'bloodType',
+  );
+  @override
+  late final GeneratedColumn<String> bloodType = GeneratedColumn<String>(
+    'blood_type',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _allergiesMeta = const VerificationMeta(
+    'allergies',
+  );
+  @override
+  late final GeneratedColumn<String> allergies = GeneratedColumn<String>(
+    'allergies',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _medicationsMeta = const VerificationMeta(
+    'medications',
+  );
+  @override
+  late final GeneratedColumn<String> medications = GeneratedColumn<String>(
+    'medications',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _diagnosesMeta = const VerificationMeta(
+    'diagnoses',
+  );
+  @override
+  late final GeneratedColumn<String> diagnoses = GeneratedColumn<String>(
+    'diagnoses',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _primaryPhysicianMeta = const VerificationMeta(
+    'primaryPhysician',
+  );
+  @override
+  late final GeneratedColumn<String> primaryPhysician = GeneratedColumn<String>(
+    'primary_physician',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _healthInsuranceProviderMeta =
+      const VerificationMeta('healthInsuranceProvider');
+  @override
+  late final GeneratedColumn<String> healthInsuranceProvider =
+      GeneratedColumn<String>(
+        'health_insurance_provider',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _healthInsuranceMemberIdMeta =
+      const VerificationMeta('healthInsuranceMemberId');
+  @override
+  late final GeneratedColumn<String> healthInsuranceMemberId =
+      GeneratedColumn<String>(
+        'health_insurance_member_id',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _notesMeta = const VerificationMeta('notes');
+  @override
+  late final GeneratedColumn<String> notes = GeneratedColumn<String>(
+    'notes',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    bloodType,
+    allergies,
+    medications,
+    diagnoses,
+    primaryPhysician,
+    healthInsuranceProvider,
+    healthInsuranceMemberId,
+    notes,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'medical_records';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<MedicalRecordData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('blood_type')) {
+      context.handle(
+        _bloodTypeMeta,
+        bloodType.isAcceptableOrUnknown(data['blood_type']!, _bloodTypeMeta),
+      );
+    }
+    if (data.containsKey('allergies')) {
+      context.handle(
+        _allergiesMeta,
+        allergies.isAcceptableOrUnknown(data['allergies']!, _allergiesMeta),
+      );
+    }
+    if (data.containsKey('medications')) {
+      context.handle(
+        _medicationsMeta,
+        medications.isAcceptableOrUnknown(
+          data['medications']!,
+          _medicationsMeta,
+        ),
+      );
+    }
+    if (data.containsKey('diagnoses')) {
+      context.handle(
+        _diagnosesMeta,
+        diagnoses.isAcceptableOrUnknown(data['diagnoses']!, _diagnosesMeta),
+      );
+    }
+    if (data.containsKey('primary_physician')) {
+      context.handle(
+        _primaryPhysicianMeta,
+        primaryPhysician.isAcceptableOrUnknown(
+          data['primary_physician']!,
+          _primaryPhysicianMeta,
+        ),
+      );
+    }
+    if (data.containsKey('health_insurance_provider')) {
+      context.handle(
+        _healthInsuranceProviderMeta,
+        healthInsuranceProvider.isAcceptableOrUnknown(
+          data['health_insurance_provider']!,
+          _healthInsuranceProviderMeta,
+        ),
+      );
+    }
+    if (data.containsKey('health_insurance_member_id')) {
+      context.handle(
+        _healthInsuranceMemberIdMeta,
+        healthInsuranceMemberId.isAcceptableOrUnknown(
+          data['health_insurance_member_id']!,
+          _healthInsuranceMemberIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('notes')) {
+      context.handle(
+        _notesMeta,
+        notes.isAcceptableOrUnknown(data['notes']!, _notesMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  MedicalRecordData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return MedicalRecordData(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      bloodType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}blood_type'],
+      ),
+      allergies: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}allergies'],
+      ),
+      medications: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}medications'],
+      ),
+      diagnoses: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}diagnoses'],
+      ),
+      primaryPhysician: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}primary_physician'],
+      ),
+      healthInsuranceProvider: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}health_insurance_provider'],
+      ),
+      healthInsuranceMemberId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}health_insurance_member_id'],
+      ),
+      notes: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}notes'],
+      ),
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $MedicalRecordsTable createAlias(String alias) {
+    return $MedicalRecordsTable(attachedDatabase, alias);
+  }
+}
+
+class MedicalRecordData extends DataClass
+    implements Insertable<MedicalRecordData> {
+  final String id;
+  final String? bloodType;
+  final String? allergies;
+  final String? medications;
+  final String? diagnoses;
+  final String? primaryPhysician;
+  final String? healthInsuranceProvider;
+  final String? healthInsuranceMemberId;
+  final String? notes;
+  final DateTime updatedAt;
+  const MedicalRecordData({
+    required this.id,
+    this.bloodType,
+    this.allergies,
+    this.medications,
+    this.diagnoses,
+    this.primaryPhysician,
+    this.healthInsuranceProvider,
+    this.healthInsuranceMemberId,
+    this.notes,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    if (!nullToAbsent || bloodType != null) {
+      map['blood_type'] = Variable<String>(bloodType);
+    }
+    if (!nullToAbsent || allergies != null) {
+      map['allergies'] = Variable<String>(allergies);
+    }
+    if (!nullToAbsent || medications != null) {
+      map['medications'] = Variable<String>(medications);
+    }
+    if (!nullToAbsent || diagnoses != null) {
+      map['diagnoses'] = Variable<String>(diagnoses);
+    }
+    if (!nullToAbsent || primaryPhysician != null) {
+      map['primary_physician'] = Variable<String>(primaryPhysician);
+    }
+    if (!nullToAbsent || healthInsuranceProvider != null) {
+      map['health_insurance_provider'] = Variable<String>(
+        healthInsuranceProvider,
+      );
+    }
+    if (!nullToAbsent || healthInsuranceMemberId != null) {
+      map['health_insurance_member_id'] = Variable<String>(
+        healthInsuranceMemberId,
+      );
+    }
+    if (!nullToAbsent || notes != null) {
+      map['notes'] = Variable<String>(notes);
+    }
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  MedicalRecordsCompanion toCompanion(bool nullToAbsent) {
+    return MedicalRecordsCompanion(
+      id: Value(id),
+      bloodType: bloodType == null && nullToAbsent
+          ? const Value.absent()
+          : Value(bloodType),
+      allergies: allergies == null && nullToAbsent
+          ? const Value.absent()
+          : Value(allergies),
+      medications: medications == null && nullToAbsent
+          ? const Value.absent()
+          : Value(medications),
+      diagnoses: diagnoses == null && nullToAbsent
+          ? const Value.absent()
+          : Value(diagnoses),
+      primaryPhysician: primaryPhysician == null && nullToAbsent
+          ? const Value.absent()
+          : Value(primaryPhysician),
+      healthInsuranceProvider: healthInsuranceProvider == null && nullToAbsent
+          ? const Value.absent()
+          : Value(healthInsuranceProvider),
+      healthInsuranceMemberId: healthInsuranceMemberId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(healthInsuranceMemberId),
+      notes: notes == null && nullToAbsent
+          ? const Value.absent()
+          : Value(notes),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory MedicalRecordData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return MedicalRecordData(
+      id: serializer.fromJson<String>(json['id']),
+      bloodType: serializer.fromJson<String?>(json['bloodType']),
+      allergies: serializer.fromJson<String?>(json['allergies']),
+      medications: serializer.fromJson<String?>(json['medications']),
+      diagnoses: serializer.fromJson<String?>(json['diagnoses']),
+      primaryPhysician: serializer.fromJson<String?>(json['primaryPhysician']),
+      healthInsuranceProvider: serializer.fromJson<String?>(
+        json['healthInsuranceProvider'],
+      ),
+      healthInsuranceMemberId: serializer.fromJson<String?>(
+        json['healthInsuranceMemberId'],
+      ),
+      notes: serializer.fromJson<String?>(json['notes']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'bloodType': serializer.toJson<String?>(bloodType),
+      'allergies': serializer.toJson<String?>(allergies),
+      'medications': serializer.toJson<String?>(medications),
+      'diagnoses': serializer.toJson<String?>(diagnoses),
+      'primaryPhysician': serializer.toJson<String?>(primaryPhysician),
+      'healthInsuranceProvider': serializer.toJson<String?>(
+        healthInsuranceProvider,
+      ),
+      'healthInsuranceMemberId': serializer.toJson<String?>(
+        healthInsuranceMemberId,
+      ),
+      'notes': serializer.toJson<String?>(notes),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  MedicalRecordData copyWith({
+    String? id,
+    Value<String?> bloodType = const Value.absent(),
+    Value<String?> allergies = const Value.absent(),
+    Value<String?> medications = const Value.absent(),
+    Value<String?> diagnoses = const Value.absent(),
+    Value<String?> primaryPhysician = const Value.absent(),
+    Value<String?> healthInsuranceProvider = const Value.absent(),
+    Value<String?> healthInsuranceMemberId = const Value.absent(),
+    Value<String?> notes = const Value.absent(),
+    DateTime? updatedAt,
+  }) => MedicalRecordData(
+    id: id ?? this.id,
+    bloodType: bloodType.present ? bloodType.value : this.bloodType,
+    allergies: allergies.present ? allergies.value : this.allergies,
+    medications: medications.present ? medications.value : this.medications,
+    diagnoses: diagnoses.present ? diagnoses.value : this.diagnoses,
+    primaryPhysician: primaryPhysician.present
+        ? primaryPhysician.value
+        : this.primaryPhysician,
+    healthInsuranceProvider: healthInsuranceProvider.present
+        ? healthInsuranceProvider.value
+        : this.healthInsuranceProvider,
+    healthInsuranceMemberId: healthInsuranceMemberId.present
+        ? healthInsuranceMemberId.value
+        : this.healthInsuranceMemberId,
+    notes: notes.present ? notes.value : this.notes,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  MedicalRecordData copyWithCompanion(MedicalRecordsCompanion data) {
+    return MedicalRecordData(
+      id: data.id.present ? data.id.value : this.id,
+      bloodType: data.bloodType.present ? data.bloodType.value : this.bloodType,
+      allergies: data.allergies.present ? data.allergies.value : this.allergies,
+      medications: data.medications.present
+          ? data.medications.value
+          : this.medications,
+      diagnoses: data.diagnoses.present ? data.diagnoses.value : this.diagnoses,
+      primaryPhysician: data.primaryPhysician.present
+          ? data.primaryPhysician.value
+          : this.primaryPhysician,
+      healthInsuranceProvider: data.healthInsuranceProvider.present
+          ? data.healthInsuranceProvider.value
+          : this.healthInsuranceProvider,
+      healthInsuranceMemberId: data.healthInsuranceMemberId.present
+          ? data.healthInsuranceMemberId.value
+          : this.healthInsuranceMemberId,
+      notes: data.notes.present ? data.notes.value : this.notes,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MedicalRecordData(')
+          ..write('id: $id, ')
+          ..write('bloodType: $bloodType, ')
+          ..write('allergies: $allergies, ')
+          ..write('medications: $medications, ')
+          ..write('diagnoses: $diagnoses, ')
+          ..write('primaryPhysician: $primaryPhysician, ')
+          ..write('healthInsuranceProvider: $healthInsuranceProvider, ')
+          ..write('healthInsuranceMemberId: $healthInsuranceMemberId, ')
+          ..write('notes: $notes, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    bloodType,
+    allergies,
+    medications,
+    diagnoses,
+    primaryPhysician,
+    healthInsuranceProvider,
+    healthInsuranceMemberId,
+    notes,
+    updatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is MedicalRecordData &&
+          other.id == this.id &&
+          other.bloodType == this.bloodType &&
+          other.allergies == this.allergies &&
+          other.medications == this.medications &&
+          other.diagnoses == this.diagnoses &&
+          other.primaryPhysician == this.primaryPhysician &&
+          other.healthInsuranceProvider == this.healthInsuranceProvider &&
+          other.healthInsuranceMemberId == this.healthInsuranceMemberId &&
+          other.notes == this.notes &&
+          other.updatedAt == this.updatedAt);
+}
+
+class MedicalRecordsCompanion extends UpdateCompanion<MedicalRecordData> {
+  final Value<String> id;
+  final Value<String?> bloodType;
+  final Value<String?> allergies;
+  final Value<String?> medications;
+  final Value<String?> diagnoses;
+  final Value<String?> primaryPhysician;
+  final Value<String?> healthInsuranceProvider;
+  final Value<String?> healthInsuranceMemberId;
+  final Value<String?> notes;
+  final Value<DateTime> updatedAt;
+  final Value<int> rowid;
+  const MedicalRecordsCompanion({
+    this.id = const Value.absent(),
+    this.bloodType = const Value.absent(),
+    this.allergies = const Value.absent(),
+    this.medications = const Value.absent(),
+    this.diagnoses = const Value.absent(),
+    this.primaryPhysician = const Value.absent(),
+    this.healthInsuranceProvider = const Value.absent(),
+    this.healthInsuranceMemberId = const Value.absent(),
+    this.notes = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  MedicalRecordsCompanion.insert({
+    this.id = const Value.absent(),
+    this.bloodType = const Value.absent(),
+    this.allergies = const Value.absent(),
+    this.medications = const Value.absent(),
+    this.diagnoses = const Value.absent(),
+    this.primaryPhysician = const Value.absent(),
+    this.healthInsuranceProvider = const Value.absent(),
+    this.healthInsuranceMemberId = const Value.absent(),
+    this.notes = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  static Insertable<MedicalRecordData> custom({
+    Expression<String>? id,
+    Expression<String>? bloodType,
+    Expression<String>? allergies,
+    Expression<String>? medications,
+    Expression<String>? diagnoses,
+    Expression<String>? primaryPhysician,
+    Expression<String>? healthInsuranceProvider,
+    Expression<String>? healthInsuranceMemberId,
+    Expression<String>? notes,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (bloodType != null) 'blood_type': bloodType,
+      if (allergies != null) 'allergies': allergies,
+      if (medications != null) 'medications': medications,
+      if (diagnoses != null) 'diagnoses': diagnoses,
+      if (primaryPhysician != null) 'primary_physician': primaryPhysician,
+      if (healthInsuranceProvider != null)
+        'health_insurance_provider': healthInsuranceProvider,
+      if (healthInsuranceMemberId != null)
+        'health_insurance_member_id': healthInsuranceMemberId,
+      if (notes != null) 'notes': notes,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  MedicalRecordsCompanion copyWith({
+    Value<String>? id,
+    Value<String?>? bloodType,
+    Value<String?>? allergies,
+    Value<String?>? medications,
+    Value<String?>? diagnoses,
+    Value<String?>? primaryPhysician,
+    Value<String?>? healthInsuranceProvider,
+    Value<String?>? healthInsuranceMemberId,
+    Value<String?>? notes,
+    Value<DateTime>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return MedicalRecordsCompanion(
+      id: id ?? this.id,
+      bloodType: bloodType ?? this.bloodType,
+      allergies: allergies ?? this.allergies,
+      medications: medications ?? this.medications,
+      diagnoses: diagnoses ?? this.diagnoses,
+      primaryPhysician: primaryPhysician ?? this.primaryPhysician,
+      healthInsuranceProvider:
+          healthInsuranceProvider ?? this.healthInsuranceProvider,
+      healthInsuranceMemberId:
+          healthInsuranceMemberId ?? this.healthInsuranceMemberId,
+      notes: notes ?? this.notes,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (bloodType.present) {
+      map['blood_type'] = Variable<String>(bloodType.value);
+    }
+    if (allergies.present) {
+      map['allergies'] = Variable<String>(allergies.value);
+    }
+    if (medications.present) {
+      map['medications'] = Variable<String>(medications.value);
+    }
+    if (diagnoses.present) {
+      map['diagnoses'] = Variable<String>(diagnoses.value);
+    }
+    if (primaryPhysician.present) {
+      map['primary_physician'] = Variable<String>(primaryPhysician.value);
+    }
+    if (healthInsuranceProvider.present) {
+      map['health_insurance_provider'] = Variable<String>(
+        healthInsuranceProvider.value,
+      );
+    }
+    if (healthInsuranceMemberId.present) {
+      map['health_insurance_member_id'] = Variable<String>(
+        healthInsuranceMemberId.value,
+      );
+    }
+    if (notes.present) {
+      map['notes'] = Variable<String>(notes.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MedicalRecordsCompanion(')
+          ..write('id: $id, ')
+          ..write('bloodType: $bloodType, ')
+          ..write('allergies: $allergies, ')
+          ..write('medications: $medications, ')
+          ..write('diagnoses: $diagnoses, ')
+          ..write('primaryPhysician: $primaryPhysician, ')
+          ..write('healthInsuranceProvider: $healthInsuranceProvider, ')
+          ..write('healthInsuranceMemberId: $healthInsuranceMemberId, ')
+          ..write('notes: $notes, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -3721,6 +4379,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $TriggerEntriesTable triggerEntries = $TriggerEntriesTable(this);
   late final $EmergencyContactsTable emergencyContacts =
       $EmergencyContactsTable(this);
+  late final $MedicalRecordsTable medicalRecords = $MedicalRecordsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -3732,6 +4391,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     consentProfiles,
     triggerEntries,
     emergencyContacts,
+    medicalRecords,
   ];
 }
 
@@ -6220,6 +6880,315 @@ typedef $$EmergencyContactsTableProcessedTableManager =
       EmergencyContactData,
       PrefetchHooks Function()
     >;
+typedef $$MedicalRecordsTableCreateCompanionBuilder =
+    MedicalRecordsCompanion Function({
+      Value<String> id,
+      Value<String?> bloodType,
+      Value<String?> allergies,
+      Value<String?> medications,
+      Value<String?> diagnoses,
+      Value<String?> primaryPhysician,
+      Value<String?> healthInsuranceProvider,
+      Value<String?> healthInsuranceMemberId,
+      Value<String?> notes,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
+typedef $$MedicalRecordsTableUpdateCompanionBuilder =
+    MedicalRecordsCompanion Function({
+      Value<String> id,
+      Value<String?> bloodType,
+      Value<String?> allergies,
+      Value<String?> medications,
+      Value<String?> diagnoses,
+      Value<String?> primaryPhysician,
+      Value<String?> healthInsuranceProvider,
+      Value<String?> healthInsuranceMemberId,
+      Value<String?> notes,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
+
+class $$MedicalRecordsTableFilterComposer
+    extends Composer<_$AppDatabase, $MedicalRecordsTable> {
+  $$MedicalRecordsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get bloodType => $composableBuilder(
+    column: $table.bloodType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get allergies => $composableBuilder(
+    column: $table.allergies,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get medications => $composableBuilder(
+    column: $table.medications,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get diagnoses => $composableBuilder(
+    column: $table.diagnoses,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get primaryPhysician => $composableBuilder(
+    column: $table.primaryPhysician,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get healthInsuranceProvider => $composableBuilder(
+    column: $table.healthInsuranceProvider,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get healthInsuranceMemberId => $composableBuilder(
+    column: $table.healthInsuranceMemberId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get notes => $composableBuilder(
+    column: $table.notes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$MedicalRecordsTableOrderingComposer
+    extends Composer<_$AppDatabase, $MedicalRecordsTable> {
+  $$MedicalRecordsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get bloodType => $composableBuilder(
+    column: $table.bloodType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get allergies => $composableBuilder(
+    column: $table.allergies,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get medications => $composableBuilder(
+    column: $table.medications,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get diagnoses => $composableBuilder(
+    column: $table.diagnoses,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get primaryPhysician => $composableBuilder(
+    column: $table.primaryPhysician,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get healthInsuranceProvider => $composableBuilder(
+    column: $table.healthInsuranceProvider,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get healthInsuranceMemberId => $composableBuilder(
+    column: $table.healthInsuranceMemberId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get notes => $composableBuilder(
+    column: $table.notes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$MedicalRecordsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $MedicalRecordsTable> {
+  $$MedicalRecordsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get bloodType =>
+      $composableBuilder(column: $table.bloodType, builder: (column) => column);
+
+  GeneratedColumn<String> get allergies =>
+      $composableBuilder(column: $table.allergies, builder: (column) => column);
+
+  GeneratedColumn<String> get medications => $composableBuilder(
+    column: $table.medications,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get diagnoses =>
+      $composableBuilder(column: $table.diagnoses, builder: (column) => column);
+
+  GeneratedColumn<String> get primaryPhysician => $composableBuilder(
+    column: $table.primaryPhysician,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get healthInsuranceProvider => $composableBuilder(
+    column: $table.healthInsuranceProvider,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get healthInsuranceMemberId => $composableBuilder(
+    column: $table.healthInsuranceMemberId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get notes =>
+      $composableBuilder(column: $table.notes, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$MedicalRecordsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $MedicalRecordsTable,
+          MedicalRecordData,
+          $$MedicalRecordsTableFilterComposer,
+          $$MedicalRecordsTableOrderingComposer,
+          $$MedicalRecordsTableAnnotationComposer,
+          $$MedicalRecordsTableCreateCompanionBuilder,
+          $$MedicalRecordsTableUpdateCompanionBuilder,
+          (
+            MedicalRecordData,
+            BaseReferences<
+              _$AppDatabase,
+              $MedicalRecordsTable,
+              MedicalRecordData
+            >,
+          ),
+          MedicalRecordData,
+          PrefetchHooks Function()
+        > {
+  $$MedicalRecordsTableTableManager(
+    _$AppDatabase db,
+    $MedicalRecordsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$MedicalRecordsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$MedicalRecordsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$MedicalRecordsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String?> bloodType = const Value.absent(),
+                Value<String?> allergies = const Value.absent(),
+                Value<String?> medications = const Value.absent(),
+                Value<String?> diagnoses = const Value.absent(),
+                Value<String?> primaryPhysician = const Value.absent(),
+                Value<String?> healthInsuranceProvider = const Value.absent(),
+                Value<String?> healthInsuranceMemberId = const Value.absent(),
+                Value<String?> notes = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => MedicalRecordsCompanion(
+                id: id,
+                bloodType: bloodType,
+                allergies: allergies,
+                medications: medications,
+                diagnoses: diagnoses,
+                primaryPhysician: primaryPhysician,
+                healthInsuranceProvider: healthInsuranceProvider,
+                healthInsuranceMemberId: healthInsuranceMemberId,
+                notes: notes,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String?> bloodType = const Value.absent(),
+                Value<String?> allergies = const Value.absent(),
+                Value<String?> medications = const Value.absent(),
+                Value<String?> diagnoses = const Value.absent(),
+                Value<String?> primaryPhysician = const Value.absent(),
+                Value<String?> healthInsuranceProvider = const Value.absent(),
+                Value<String?> healthInsuranceMemberId = const Value.absent(),
+                Value<String?> notes = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => MedicalRecordsCompanion.insert(
+                id: id,
+                bloodType: bloodType,
+                allergies: allergies,
+                medications: medications,
+                diagnoses: diagnoses,
+                primaryPhysician: primaryPhysician,
+                healthInsuranceProvider: healthInsuranceProvider,
+                healthInsuranceMemberId: healthInsuranceMemberId,
+                notes: notes,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$MedicalRecordsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $MedicalRecordsTable,
+      MedicalRecordData,
+      $$MedicalRecordsTableFilterComposer,
+      $$MedicalRecordsTableOrderingComposer,
+      $$MedicalRecordsTableAnnotationComposer,
+      $$MedicalRecordsTableCreateCompanionBuilder,
+      $$MedicalRecordsTableUpdateCompanionBuilder,
+      (
+        MedicalRecordData,
+        BaseReferences<_$AppDatabase, $MedicalRecordsTable, MedicalRecordData>,
+      ),
+      MedicalRecordData,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -6236,4 +7205,6 @@ class $AppDatabaseManager {
       $$TriggerEntriesTableTableManager(_db, _db.triggerEntries);
   $$EmergencyContactsTableTableManager get emergencyContacts =>
       $$EmergencyContactsTableTableManager(_db, _db.emergencyContacts);
+  $$MedicalRecordsTableTableManager get medicalRecords =>
+      $$MedicalRecordsTableTableManager(_db, _db.medicalRecords);
 }

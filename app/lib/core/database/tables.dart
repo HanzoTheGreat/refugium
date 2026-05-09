@@ -143,3 +143,25 @@ class EmergencyContacts extends Table {
   @override
   Set<Column> get primaryKey => {id};
 }
+
+@DataClassName('MedicalRecordData')
+class MedicalRecords extends Table {
+  @override
+  String get tableName => 'medical_records';
+
+  TextColumn get id => text().clientDefault(
+    () => DateTime.now().millisecondsSinceEpoch.toString(),
+  )();
+  TextColumn get bloodType => text().nullable()();
+  TextColumn get allergies => text().nullable()();
+  TextColumn get medications => text().nullable()();
+  TextColumn get diagnoses => text().nullable()();
+  TextColumn get primaryPhysician => text().nullable()();
+  TextColumn get healthInsuranceProvider => text().nullable()();
+  TextColumn get healthInsuranceMemberId => text().nullable()();
+  TextColumn get notes => text().nullable()();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
