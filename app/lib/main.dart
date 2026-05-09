@@ -6,6 +6,7 @@ import 'features/switch_tracker/screens/switch_tracker_screen.dart';
 import 'features/emergency_card/screens/emergency_card_screen.dart';
 import 'features/emergency_card/screens/emergency_contacts_screen.dart';
 import 'features/emergency_card/screens/medical_record_screen.dart';
+import 'features/journal/screens/journal_screen.dart';
 
 final databaseProvider = Provider<AppDatabase>((ref) {
   final db = AppDatabase();
@@ -54,6 +55,7 @@ class _MainShellState extends State<MainShell> {
     EmergencyCardScreen(),
     EmergencyContactsScreen(),
     MedicalRecordScreen(),
+    JournalScreen(),
   ];
 
   @override
@@ -71,6 +73,10 @@ class _MainShellState extends State<MainShell> {
           NavigationDestination(
             icon: Icon(Icons.medical_information),
             label: 'Medizin',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.book_outlined),
+            label: 'Journal',
           ),
         ],
       ),

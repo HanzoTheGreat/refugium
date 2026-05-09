@@ -13,13 +13,14 @@ part 'database.g.dart';
     TriggerEntries,
     EmergencyContacts,
     MedicalRecords,
+    JournalEntries,
   ],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openDatabase());
 
   @override
-  int get schemaVersion => 6;
+  int get schemaVersion => 7;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -29,6 +30,7 @@ class AppDatabase extends _$AppDatabase {
       if (from < 4) await m.createTable(triggerEntries);
       if (from < 5) await m.createTable(emergencyContacts);
       if (from < 6) await m.createTable(medicalRecords);
+      if (from < 7) await m.createTable(journalEntries);
     },
   );
 

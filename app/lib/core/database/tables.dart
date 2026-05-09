@@ -165,3 +165,22 @@ class MedicalRecords extends Table {
   @override
   Set<Column> get primaryKey => {id};
 }
+
+@DataClassName('JournalEntryData')
+class JournalEntries extends Table {
+  @override
+  String get tableName => 'journal_entries';
+
+  TextColumn get id => text().clientDefault(
+    () => DateTime.now().millisecondsSinceEpoch.toString(),
+  )();
+  TextColumn get partId => text().references(Parts, #id).nullable()();
+  TextColumn get content => text()();
+  TextColumn get mood => text().nullable()();
+  BoolColumn get isPrivate => boolean().withDefault(const Constant(false))();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}

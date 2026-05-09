@@ -16,130 +16,156 @@ class SwitchTrackerScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Wer ist vorne?')),
-      body: Column(
-        children: [
+      body: CustomScrollView(
+        slivers: [
           // Aktueller Anteil
-          currentAsync.when(
-            loading: () => const CircularProgressIndicator(),
-            error: (e, _) => Text('Fehler: $e'),
-            data: (current) => partsAsync.when(
-              loading: () => const CircularProgressIndicator(),
-              error: (e, _) => Text('Fehler: $e'),
-              data: (parts) {
-                final currentPart = current == null
-                    ? null
-                    : parts.where((p) => p.id == current.partId).firstOrNull;
-                return Column(
-                  children: [
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(24),
-                      color: Theme.of(context).colorScheme.primaryContainer,
-                      child: Column(
-                        children: [
-                          Text(
-                            'Aktuell vorne',
-                            style: Theme.of(context).textTheme.bodySmall,
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            currentPart?.displayName ?? 'Niemand eingeloggt',
-                            style: Theme.of(context).textTheme.headlineMedium,
-                          ),
-                          if (currentPart?.pronouns != null) ...[
-                            const SizedBox(height: 4),
-                            Text(currentPart!.pronouns!),
+          SliverToBoxAdapter(
+            child: currentAsync.when(
+              loading: () => const Padding(
+                padding: EdgeInsets.all(24),
+                child: Center(child: CircularProgressIndicator()),
+              ),
+              error: (e, _) => Padding(
+                padding: const EdgeInsets.all(16),
+                child: Text('Fehler: $e'),
+              ),
+              data: (current) => partsAsync.when(
+                loading: () => const Padding(
+                  padding: EdgeInsets.all(24),
+                  child: Center(child: CircularProgressIndicator()),
+                ),
+                error: (e, _) => Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Text('Fehler: $e'),
+                ),
+                data: (parts) {
+                  final currentPart = current == null
+                      ? null
+                      : parts.where((p) => p.id == current.partId).firstOrNull;
+                  return Column(
+                    children: [
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(24),
+                        color: Theme.of(context).colorScheme.primaryContainer,
+                        child: Column(
+                          children: [
+                            Text(
+                              'Aktuell vorne',
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              currentPart?.displayName ?? 'Niemand eingeloggt',
+                              style: Theme.of(context).textTheme.headlineMedium,
+                            ),
+                            if (currentPart?.pronouns != null) ...[
+                              const SizedBox(height: 4),
+                              Text(currentPart!.pronouns!),
+                            ],
                           ],
-                        ],
+                        ),
                       ),
-                    ),
-                    if (currentPart != null)
-                      _ConsentSummary(partId: currentPart.id),
-                  ],
-                );
-              },
+                      if (currentPart != null)
+                        _ConsentSummary(partId: currentPart.id),
+                    ],
+                  );
+                },
+              ),
             ),
           ),
 
           // Anteil wechseln
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Align(
-              alignment: Alignment.centerLeft,
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
               child: Text(
                 'Anteil wechseln',
                 style: Theme.of(context).textTheme.titleSmall,
               ),
             ),
           ),
-          partsAsync.when(
-            loading: () => const CircularProgressIndicator(),
-            error: (e, _) => Text('Fehler: $e'),
-            data: (parts) {
-              final activeParts = parts
-                  .where((p) => p.status == 'Active')
-                  .toList();
-              return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: activeParts.map((part) {
-                    return ActionChip(
-                      label: Text(part.displayName ?? 'Unbenannt'),
-                      onPressed: () => ref
-                          .read(switchTrackerProvider.notifier)
-                          .switchTo(part.id),
-                    );
-                  }).toList(),
-                ),
-              );
-            },
+          SliverToBoxAdapter(
+            child: partsAsync.when(
+              loading: () => const SizedBox.shrink(),
+              error: (e, _) => const SizedBox.shrink(),
+              data: (parts) {
+                final activeParts = parts
+                    .where((p) => p.status == 'Active')
+                    .toList();
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: activeParts.map((part) {
+                      return ActionChip(
+                        label: Text(part.displayName ?? 'Unbenannt'),
+                        onPressed: () => ref
+                            .read(switchTrackerProvider.notifier)
+                            .switchTo(part.id),
+                      );
+                    }).toList(),
+                  ),
+                );
+              },
+            ),
           ),
 
-          const Divider(height: 32),
+          // Divider
+          const SliverToBoxAdapter(child: Divider(height: 32)),
 
-          // History
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Align(
-              alignment: Alignment.centerLeft,
+          // History Header
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Text(
                 'Letzte Wechsel',
                 style: Theme.of(context).textTheme.titleSmall,
               ),
             ),
           ),
-          Expanded(
-            child: historyAsync.when(
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, _) => Center(child: Text('Fehler: $e')),
-              data: (history) => partsAsync.when(
-                loading: () => const Center(child: CircularProgressIndicator()),
-                error: (e, _) => Center(child: Text('Fehler: $e')),
-                data: (parts) {
-                  if (history.isEmpty) {
-                    return const Center(child: Text('Noch keine Wechsel'));
-                  }
-                  return ListView.builder(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: history.length,
-                    itemBuilder: (context, index) {
-                      final event = history[index];
-                      final part = parts
-                          .where((p) => p.id == event.partId)
-                          .firstOrNull;
-                      return ListTile(
-                        title: Text(part?.displayName ?? 'Unbekannt'),
-                        subtitle: Text(_formatTime(event.timestamp)),
-                        leading: const Icon(Icons.swap_horiz),
-                      );
-                    },
+          const SliverToBoxAdapter(child: SizedBox(height: 8)),
+
+          // History Liste
+          historyAsync.when(
+            loading: () => const SliverToBoxAdapter(
+              child: Center(child: CircularProgressIndicator()),
+            ),
+            error: (e, _) =>
+                SliverToBoxAdapter(child: Center(child: Text('Fehler: $e'))),
+            data: (history) => partsAsync.when(
+              loading: () => const SliverToBoxAdapter(child: SizedBox.shrink()),
+              error: (e, _) =>
+                  const SliverToBoxAdapter(child: SizedBox.shrink()),
+              data: (parts) {
+                if (history.isEmpty) {
+                  return const SliverToBoxAdapter(
+                    child: Padding(
+                      padding: EdgeInsets.all(16),
+                      child: Center(child: Text('Noch keine Wechsel')),
+                    ),
                   );
-                },
-              ),
+                }
+                return SliverList(
+                  delegate: SliverChildBuilderDelegate((context, index) {
+                    final event = history[index];
+                    final part = parts
+                        .where((p) => p.id == event.partId)
+                        .firstOrNull;
+                    return ListTile(
+                      title: Text(part?.displayName ?? 'Unbekannt'),
+                      subtitle: Text(_formatTime(event.timestamp)),
+                      leading: const Icon(Icons.swap_horiz),
+                    );
+                  }, childCount: history.length),
+                );
+              },
             ),
           ),
+
+          // Bottom padding
+          const SliverToBoxAdapter(child: SizedBox(height: 24)),
         ],
       ),
     );
@@ -219,18 +245,15 @@ class _ConsentChip extends StatelessWidget {
       _ => (Colors.grey.shade200, Icons.question_mark),
     };
 
+    final iconColor = switch (value) {
+      'Yes' => Colors.green.shade700,
+      'AskFirst' => Colors.orange.shade700,
+      'No' => Colors.red.shade700,
+      _ => Colors.grey,
+    };
+
     return Chip(
-      avatar: Icon(
-        icon,
-        size: 16,
-        color: color == Colors.green.shade100
-            ? Colors.green.shade700
-            : color == Colors.orange.shade100
-            ? Colors.orange.shade700
-            : color == Colors.red.shade100
-            ? Colors.red.shade700
-            : Colors.grey,
-      ),
+      avatar: Icon(icon, size: 16, color: iconColor),
       label: Text(label, style: const TextStyle(fontSize: 12)),
       backgroundColor: color,
       padding: EdgeInsets.zero,
