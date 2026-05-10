@@ -5,6 +5,7 @@
 import FlutterMacOS
 import Foundation
 
+import flutter_local_notifications
 import flutter_secure_storage_macos
 import local_auth_darwin
 import mobile_scanner
@@ -13,6 +14,7 @@ import sqlcipher_flutter_libs
 import sqlite3_flutter_libs
 
 func RegisterGeneratedPlugins(registry: FlutterPluginRegistry) {
+  FlutterLocalNotificationsPlugin.register(with: registry.registrar(forPlugin: "FlutterLocalNotificationsPlugin"))
   FlutterSecureStoragePlugin.register(with: registry.registrar(forPlugin: "FlutterSecureStoragePlugin"))
   LocalAuthPlugin.register(with: registry.registrar(forPlugin: "LocalAuthPlugin"))
   MobileScannerPlugin.register(with: registry.registrar(forPlugin: "MobileScannerPlugin"))

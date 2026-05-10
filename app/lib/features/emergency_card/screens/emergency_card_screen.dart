@@ -9,7 +9,7 @@ import '../../parts/trigger_provider.dart';
 import '../emergency_contacts_provider.dart';
 import '../medical_record_provider.dart';
 import '../../../core/database/database.dart';
-import '../../../main.dart';
+import '../../../core/database/database_provider.dart';
 
 class EmergencyCardScreen extends ConsumerWidget {
   const EmergencyCardScreen({super.key});

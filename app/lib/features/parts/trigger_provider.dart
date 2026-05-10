@@ -1,7 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/database/database.dart';
-import '../../main.dart';
+import '../../../core/database/database_provider.dart';
 
 final triggerEntriesProvider =
     StreamProvider.family<List<TriggerEntryData>, String>((ref, partId) {

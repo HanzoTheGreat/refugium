@@ -1,7 +1,9 @@
 import 'package:drift/drift.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/database/database.dart';
-import '../../main.dart';
+import '../../../core/database/database_provider.dart';
+import '../../core/sync/sync_service.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 // Aktueller Anteil – wird nur im Speicher gehalten (letzte SwitchEvent in DB)
 final currentPartProvider = FutureProvider<SwitchEventsData?>((ref) async {
@@ -48,6 +50,25 @@ class SwitchTrackerNotifier extends AsyncNotifier<SwitchEventsData?> {
     ref.invalidateSelf();
     ref.invalidate(currentPartProvider);
     ref.invalidate(switchHistoryProvider);
+
+    // Sync-Event senden
+    final partnerDeviceId = await const FlutterSecureStorage(
+      aOptions: AndroidOptions(encryptedSharedPreferences: true),
+    ).read(key: 'refugium_partner_device_id');
+
+    if (partnerDeviceId != null) {
+      ref
+          .read(syncServiceProvider)
+          .sendSyncEvent(
+            recipientDeviceId: partnerDeviceId,
+            messageType: 'SwitchEvent',
+            payload: {
+              'part_id': partId,
+              'timestamp': DateTime.now().toIso8601String(),
+              'note': note,
+            },
+          );
+    }
   }
 }
 

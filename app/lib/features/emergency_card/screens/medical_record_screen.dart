@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/database/database.dart';
 import '../../../core/sync/app_mode_provider.dart';
 import '../medical_record_provider.dart';
-import '../../../main.dart';
+import '../../../core/database/database_provider.dart';
 
 class MedicalRecordScreen extends ConsumerStatefulWidget {
   const MedicalRecordScreen({super.key});

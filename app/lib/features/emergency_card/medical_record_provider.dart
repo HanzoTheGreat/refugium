@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/database/database.dart';
-import '../../main.dart';
+import '../../../core/database/database_provider.dart';
 
 final medicalRecordProvider = StreamProvider<MedicalRecordData?>((ref) {
   final db = ref.watch(databaseProvider);

@@ -2,7 +2,7 @@ import 'package:drift/drift.dart' hide Column;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/database/database.dart';
-import '../../../main.dart';
+import '../../../core/database/database_provider.dart';
 
 class EditTriggerDialog extends ConsumerStatefulWidget {
   final TriggerEntryData trigger;

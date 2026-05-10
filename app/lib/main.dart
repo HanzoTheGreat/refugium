@@ -10,13 +10,15 @@ import 'features/emergency_card/screens/emergency_card_screen.dart';
 import 'features/emergency_card/screens/emergency_contacts_screen.dart';
 import 'features/emergency_card/screens/medical_record_screen.dart';
 import 'features/journal/screens/journal_screen.dart';
+import 'core/sync/sync_service.dart';
+import 'core/sync/sync_provider.dart';
+import 'core/sync/notification_service.dart';
+import 'core/database/database_provider.dart';
 
-final databaseProvider = Provider<AppDatabase>((ref) {
-  throw UnimplementedError('Database not initialized');
-});
-
+// In main(), nach db öffnen:
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await NotificationService.init();
   final db = await AppDatabase.open();
   runApp(
     ProviderScope(
@@ -26,11 +28,18 @@ void main() async {
   );
 }
 
-class RefugiumApp extends StatelessWidget {
+class RefugiumApp extends ConsumerWidget {
   const RefugiumApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    // SyncService starten
+    final syncService = ref.read(syncServiceProvider);
+    final syncState = ref.watch(syncProvider);
+    syncState.whenData((state) {
+      syncService.start(ref, 'http://65.108.149.162:8080');
+    });
+
     return MaterialApp(
       title: 'Refugium',
       debugShowCheckedModeBanner: false,

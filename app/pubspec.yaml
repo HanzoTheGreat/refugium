@@ -66,6 +66,16 @@ dev_dependencies:
   
   # QR-Code scannen
   mobile_scanner: ^5.2.3
+  
+  # Multicast DNS
+  multicast_dns: ^0.3.2+1
+
+  # Für MiniServer der App und Discovery Service
+  shelf: ^1.4.2
+  shelf_router: ^1.1.4
+
+  # Notifications
+  flutter_local_notifications: ^18.0.0
 
 flutter:
   uses-material-design: true

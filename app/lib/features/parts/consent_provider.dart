@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/database/database.dart';
-import '../../main.dart';
+import '../../../core/database/database_provider.dart';
 
 final consentProfileProvider =
     FutureProvider.family<ConsentProfileData?, String>((ref, partId) async {
