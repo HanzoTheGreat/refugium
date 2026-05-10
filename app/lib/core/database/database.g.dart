@@ -4819,6 +4819,426 @@ class JournalEntriesCompanion extends UpdateCompanion<JournalEntryData> {
   }
 }
 
+class $ConnectionsTable extends Connections
+    with TableInfo<$ConnectionsTable, ConnectionData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ConnectionsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    clientDefault: () => DateTime.now().millisecondsSinceEpoch.toString(),
+  );
+  static const VerificationMeta _remoteDeviceIdMeta = const VerificationMeta(
+    'remoteDeviceId',
+  );
+  @override
+  late final GeneratedColumn<String> remoteDeviceId = GeneratedColumn<String>(
+    'remote_device_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _remoteDisplayNameMeta = const VerificationMeta(
+    'remoteDisplayName',
+  );
+  @override
+  late final GeneratedColumn<String> remoteDisplayName =
+      GeneratedColumn<String>(
+        'remote_display_name',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      );
+  static const VerificationMeta _roleMeta = const VerificationMeta('role');
+  @override
+  late final GeneratedColumn<String> role = GeneratedColumn<String>(
+    'role',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('partner'),
+  );
+  static const VerificationMeta _isActiveMeta = const VerificationMeta(
+    'isActive',
+  );
+  @override
+  late final GeneratedColumn<bool> isActive = GeneratedColumn<bool>(
+    'is_active',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_active" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _pairedAtMeta = const VerificationMeta(
+    'pairedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> pairedAt = GeneratedColumn<DateTime>(
+    'paired_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    remoteDeviceId,
+    remoteDisplayName,
+    role,
+    isActive,
+    pairedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'connections';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<ConnectionData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('remote_device_id')) {
+      context.handle(
+        _remoteDeviceIdMeta,
+        remoteDeviceId.isAcceptableOrUnknown(
+          data['remote_device_id']!,
+          _remoteDeviceIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_remoteDeviceIdMeta);
+    }
+    if (data.containsKey('remote_display_name')) {
+      context.handle(
+        _remoteDisplayNameMeta,
+        remoteDisplayName.isAcceptableOrUnknown(
+          data['remote_display_name']!,
+          _remoteDisplayNameMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_remoteDisplayNameMeta);
+    }
+    if (data.containsKey('role')) {
+      context.handle(
+        _roleMeta,
+        role.isAcceptableOrUnknown(data['role']!, _roleMeta),
+      );
+    }
+    if (data.containsKey('is_active')) {
+      context.handle(
+        _isActiveMeta,
+        isActive.isAcceptableOrUnknown(data['is_active']!, _isActiveMeta),
+      );
+    }
+    if (data.containsKey('paired_at')) {
+      context.handle(
+        _pairedAtMeta,
+        pairedAt.isAcceptableOrUnknown(data['paired_at']!, _pairedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  ConnectionData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ConnectionData(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      remoteDeviceId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}remote_device_id'],
+      )!,
+      remoteDisplayName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}remote_display_name'],
+      )!,
+      role: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}role'],
+      )!,
+      isActive: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_active'],
+      )!,
+      pairedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}paired_at'],
+      )!,
+    );
+  }
+
+  @override
+  $ConnectionsTable createAlias(String alias) {
+    return $ConnectionsTable(attachedDatabase, alias);
+  }
+}
+
+class ConnectionData extends DataClass implements Insertable<ConnectionData> {
+  final String id;
+  final String remoteDeviceId;
+  final String remoteDisplayName;
+  final String role;
+  final bool isActive;
+  final DateTime pairedAt;
+  const ConnectionData({
+    required this.id,
+    required this.remoteDeviceId,
+    required this.remoteDisplayName,
+    required this.role,
+    required this.isActive,
+    required this.pairedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['remote_device_id'] = Variable<String>(remoteDeviceId);
+    map['remote_display_name'] = Variable<String>(remoteDisplayName);
+    map['role'] = Variable<String>(role);
+    map['is_active'] = Variable<bool>(isActive);
+    map['paired_at'] = Variable<DateTime>(pairedAt);
+    return map;
+  }
+
+  ConnectionsCompanion toCompanion(bool nullToAbsent) {
+    return ConnectionsCompanion(
+      id: Value(id),
+      remoteDeviceId: Value(remoteDeviceId),
+      remoteDisplayName: Value(remoteDisplayName),
+      role: Value(role),
+      isActive: Value(isActive),
+      pairedAt: Value(pairedAt),
+    );
+  }
+
+  factory ConnectionData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ConnectionData(
+      id: serializer.fromJson<String>(json['id']),
+      remoteDeviceId: serializer.fromJson<String>(json['remoteDeviceId']),
+      remoteDisplayName: serializer.fromJson<String>(json['remoteDisplayName']),
+      role: serializer.fromJson<String>(json['role']),
+      isActive: serializer.fromJson<bool>(json['isActive']),
+      pairedAt: serializer.fromJson<DateTime>(json['pairedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'remoteDeviceId': serializer.toJson<String>(remoteDeviceId),
+      'remoteDisplayName': serializer.toJson<String>(remoteDisplayName),
+      'role': serializer.toJson<String>(role),
+      'isActive': serializer.toJson<bool>(isActive),
+      'pairedAt': serializer.toJson<DateTime>(pairedAt),
+    };
+  }
+
+  ConnectionData copyWith({
+    String? id,
+    String? remoteDeviceId,
+    String? remoteDisplayName,
+    String? role,
+    bool? isActive,
+    DateTime? pairedAt,
+  }) => ConnectionData(
+    id: id ?? this.id,
+    remoteDeviceId: remoteDeviceId ?? this.remoteDeviceId,
+    remoteDisplayName: remoteDisplayName ?? this.remoteDisplayName,
+    role: role ?? this.role,
+    isActive: isActive ?? this.isActive,
+    pairedAt: pairedAt ?? this.pairedAt,
+  );
+  ConnectionData copyWithCompanion(ConnectionsCompanion data) {
+    return ConnectionData(
+      id: data.id.present ? data.id.value : this.id,
+      remoteDeviceId: data.remoteDeviceId.present
+          ? data.remoteDeviceId.value
+          : this.remoteDeviceId,
+      remoteDisplayName: data.remoteDisplayName.present
+          ? data.remoteDisplayName.value
+          : this.remoteDisplayName,
+      role: data.role.present ? data.role.value : this.role,
+      isActive: data.isActive.present ? data.isActive.value : this.isActive,
+      pairedAt: data.pairedAt.present ? data.pairedAt.value : this.pairedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ConnectionData(')
+          ..write('id: $id, ')
+          ..write('remoteDeviceId: $remoteDeviceId, ')
+          ..write('remoteDisplayName: $remoteDisplayName, ')
+          ..write('role: $role, ')
+          ..write('isActive: $isActive, ')
+          ..write('pairedAt: $pairedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    remoteDeviceId,
+    remoteDisplayName,
+    role,
+    isActive,
+    pairedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ConnectionData &&
+          other.id == this.id &&
+          other.remoteDeviceId == this.remoteDeviceId &&
+          other.remoteDisplayName == this.remoteDisplayName &&
+          other.role == this.role &&
+          other.isActive == this.isActive &&
+          other.pairedAt == this.pairedAt);
+}
+
+class ConnectionsCompanion extends UpdateCompanion<ConnectionData> {
+  final Value<String> id;
+  final Value<String> remoteDeviceId;
+  final Value<String> remoteDisplayName;
+  final Value<String> role;
+  final Value<bool> isActive;
+  final Value<DateTime> pairedAt;
+  final Value<int> rowid;
+  const ConnectionsCompanion({
+    this.id = const Value.absent(),
+    this.remoteDeviceId = const Value.absent(),
+    this.remoteDisplayName = const Value.absent(),
+    this.role = const Value.absent(),
+    this.isActive = const Value.absent(),
+    this.pairedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  ConnectionsCompanion.insert({
+    this.id = const Value.absent(),
+    required String remoteDeviceId,
+    required String remoteDisplayName,
+    this.role = const Value.absent(),
+    this.isActive = const Value.absent(),
+    this.pairedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : remoteDeviceId = Value(remoteDeviceId),
+       remoteDisplayName = Value(remoteDisplayName);
+  static Insertable<ConnectionData> custom({
+    Expression<String>? id,
+    Expression<String>? remoteDeviceId,
+    Expression<String>? remoteDisplayName,
+    Expression<String>? role,
+    Expression<bool>? isActive,
+    Expression<DateTime>? pairedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (remoteDeviceId != null) 'remote_device_id': remoteDeviceId,
+      if (remoteDisplayName != null) 'remote_display_name': remoteDisplayName,
+      if (role != null) 'role': role,
+      if (isActive != null) 'is_active': isActive,
+      if (pairedAt != null) 'paired_at': pairedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  ConnectionsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? remoteDeviceId,
+    Value<String>? remoteDisplayName,
+    Value<String>? role,
+    Value<bool>? isActive,
+    Value<DateTime>? pairedAt,
+    Value<int>? rowid,
+  }) {
+    return ConnectionsCompanion(
+      id: id ?? this.id,
+      remoteDeviceId: remoteDeviceId ?? this.remoteDeviceId,
+      remoteDisplayName: remoteDisplayName ?? this.remoteDisplayName,
+      role: role ?? this.role,
+      isActive: isActive ?? this.isActive,
+      pairedAt: pairedAt ?? this.pairedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (remoteDeviceId.present) {
+      map['remote_device_id'] = Variable<String>(remoteDeviceId.value);
+    }
+    if (remoteDisplayName.present) {
+      map['remote_display_name'] = Variable<String>(remoteDisplayName.value);
+    }
+    if (role.present) {
+      map['role'] = Variable<String>(role.value);
+    }
+    if (isActive.present) {
+      map['is_active'] = Variable<bool>(isActive.value);
+    }
+    if (pairedAt.present) {
+      map['paired_at'] = Variable<DateTime>(pairedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ConnectionsCompanion(')
+          ..write('id: $id, ')
+          ..write('remoteDeviceId: $remoteDeviceId, ')
+          ..write('remoteDisplayName: $remoteDisplayName, ')
+          ..write('role: $role, ')
+          ..write('isActive: $isActive, ')
+          ..write('pairedAt: $pairedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -4833,6 +5253,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
       $EmergencyContactsTable(this);
   late final $MedicalRecordsTable medicalRecords = $MedicalRecordsTable(this);
   late final $JournalEntriesTable journalEntries = $JournalEntriesTable(this);
+  late final $ConnectionsTable connections = $ConnectionsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -4846,6 +5267,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     emergencyContacts,
     medicalRecords,
     journalEntries,
+    connections,
   ];
 }
 
@@ -8100,6 +8522,229 @@ typedef $$JournalEntriesTableProcessedTableManager =
       JournalEntryData,
       PrefetchHooks Function({bool partId})
     >;
+typedef $$ConnectionsTableCreateCompanionBuilder =
+    ConnectionsCompanion Function({
+      Value<String> id,
+      required String remoteDeviceId,
+      required String remoteDisplayName,
+      Value<String> role,
+      Value<bool> isActive,
+      Value<DateTime> pairedAt,
+      Value<int> rowid,
+    });
+typedef $$ConnectionsTableUpdateCompanionBuilder =
+    ConnectionsCompanion Function({
+      Value<String> id,
+      Value<String> remoteDeviceId,
+      Value<String> remoteDisplayName,
+      Value<String> role,
+      Value<bool> isActive,
+      Value<DateTime> pairedAt,
+      Value<int> rowid,
+    });
+
+class $$ConnectionsTableFilterComposer
+    extends Composer<_$AppDatabase, $ConnectionsTable> {
+  $$ConnectionsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get remoteDeviceId => $composableBuilder(
+    column: $table.remoteDeviceId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get remoteDisplayName => $composableBuilder(
+    column: $table.remoteDisplayName,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get role => $composableBuilder(
+    column: $table.role,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isActive => $composableBuilder(
+    column: $table.isActive,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get pairedAt => $composableBuilder(
+    column: $table.pairedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$ConnectionsTableOrderingComposer
+    extends Composer<_$AppDatabase, $ConnectionsTable> {
+  $$ConnectionsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get remoteDeviceId => $composableBuilder(
+    column: $table.remoteDeviceId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get remoteDisplayName => $composableBuilder(
+    column: $table.remoteDisplayName,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get role => $composableBuilder(
+    column: $table.role,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isActive => $composableBuilder(
+    column: $table.isActive,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get pairedAt => $composableBuilder(
+    column: $table.pairedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$ConnectionsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $ConnectionsTable> {
+  $$ConnectionsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get remoteDeviceId => $composableBuilder(
+    column: $table.remoteDeviceId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get remoteDisplayName => $composableBuilder(
+    column: $table.remoteDisplayName,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get role =>
+      $composableBuilder(column: $table.role, builder: (column) => column);
+
+  GeneratedColumn<bool> get isActive =>
+      $composableBuilder(column: $table.isActive, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get pairedAt =>
+      $composableBuilder(column: $table.pairedAt, builder: (column) => column);
+}
+
+class $$ConnectionsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $ConnectionsTable,
+          ConnectionData,
+          $$ConnectionsTableFilterComposer,
+          $$ConnectionsTableOrderingComposer,
+          $$ConnectionsTableAnnotationComposer,
+          $$ConnectionsTableCreateCompanionBuilder,
+          $$ConnectionsTableUpdateCompanionBuilder,
+          (
+            ConnectionData,
+            BaseReferences<_$AppDatabase, $ConnectionsTable, ConnectionData>,
+          ),
+          ConnectionData,
+          PrefetchHooks Function()
+        > {
+  $$ConnectionsTableTableManager(_$AppDatabase db, $ConnectionsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$ConnectionsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$ConnectionsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$ConnectionsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> remoteDeviceId = const Value.absent(),
+                Value<String> remoteDisplayName = const Value.absent(),
+                Value<String> role = const Value.absent(),
+                Value<bool> isActive = const Value.absent(),
+                Value<DateTime> pairedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => ConnectionsCompanion(
+                id: id,
+                remoteDeviceId: remoteDeviceId,
+                remoteDisplayName: remoteDisplayName,
+                role: role,
+                isActive: isActive,
+                pairedAt: pairedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                required String remoteDeviceId,
+                required String remoteDisplayName,
+                Value<String> role = const Value.absent(),
+                Value<bool> isActive = const Value.absent(),
+                Value<DateTime> pairedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => ConnectionsCompanion.insert(
+                id: id,
+                remoteDeviceId: remoteDeviceId,
+                remoteDisplayName: remoteDisplayName,
+                role: role,
+                isActive: isActive,
+                pairedAt: pairedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$ConnectionsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $ConnectionsTable,
+      ConnectionData,
+      $$ConnectionsTableFilterComposer,
+      $$ConnectionsTableOrderingComposer,
+      $$ConnectionsTableAnnotationComposer,
+      $$ConnectionsTableCreateCompanionBuilder,
+      $$ConnectionsTableUpdateCompanionBuilder,
+      (
+        ConnectionData,
+        BaseReferences<_$AppDatabase, $ConnectionsTable, ConnectionData>,
+      ),
+      ConnectionData,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -8120,4 +8765,6 @@ class $AppDatabaseManager {
       $$MedicalRecordsTableTableManager(_db, _db.medicalRecords);
   $$JournalEntriesTableTableManager get journalEntries =>
       $$JournalEntriesTableTableManager(_db, _db.journalEntries);
+  $$ConnectionsTableTableManager get connections =>
+      $$ConnectionsTableTableManager(_db, _db.connections);
 }

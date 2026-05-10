@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/database/database.dart';
+import '../../../core/sync/app_mode_provider.dart';
 import '../trigger_provider.dart';
 import '../widgets/edit_trigger_dialog.dart';
 
@@ -17,6 +18,8 @@ class TriggerScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final triggersAsync = ref.watch(triggerEntriesProvider(partId));
+    final mode = ref.watch(activeModeProvider);
+    final canEdit = mode == AppMode.patient;
 
     return Scaffold(
       appBar: AppBar(title: Text('Trigger – $partName')),
@@ -34,19 +37,22 @@ class TriggerScreen extends ConsumerWidget {
               final trigger = triggers[index];
               return _TriggerCard(
                 trigger: trigger,
+                canEdit: canEdit,
                 onDelete: () => deleteTrigger(ref, trigger.id),
               );
             },
           );
         },
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => showDialog(
-          context: context,
-          builder: (_) => _AddTriggerDialog(partId: partId),
-        ),
-        child: const Icon(Icons.add),
-      ),
+      floatingActionButton: canEdit
+          ? FloatingActionButton(
+              onPressed: () => showDialog(
+                context: context,
+                builder: (_) => _AddTriggerDialog(partId: partId),
+              ),
+              child: const Icon(Icons.add),
+            )
+          : null,
     );
   }
 }
@@ -54,8 +60,13 @@ class TriggerScreen extends ConsumerWidget {
 class _TriggerCard extends StatelessWidget {
   final TriggerEntryData trigger;
   final VoidCallback onDelete;
+  final bool canEdit;
 
-  const _TriggerCard({required this.trigger, required this.onDelete});
+  const _TriggerCard({
+    required this.trigger,
+    required this.onDelete,
+    required this.canEdit,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -90,19 +101,21 @@ class _TriggerCard extends StatelessWidget {
                   padding: EdgeInsets.zero,
                   materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
-                IconButton(
-                  icon: const Icon(Icons.delete_outline, size: 20),
-                  onPressed: onDelete,
-                  color: Colors.grey,
-                ),
-                IconButton(
-                  icon: const Icon(Icons.edit_outlined, size: 20),
-                  onPressed: () => showDialog(
-                    context: context,
-                    builder: (_) => EditTriggerDialog(trigger: trigger),
+                if (canEdit) ...[
+                  IconButton(
+                    icon: const Icon(Icons.delete_outline, size: 20),
+                    onPressed: onDelete,
+                    color: Colors.grey,
                   ),
-                  color: Colors.grey,
-                ),
+                  IconButton(
+                    icon: const Icon(Icons.edit_outlined, size: 20),
+                    onPressed: () => showDialog(
+                      context: context,
+                      builder: (_) => EditTriggerDialog(trigger: trigger),
+                    ),
+                    color: Colors.grey,
+                  ),
+                ],
               ],
             ),
             if (trigger.copingSuggestion != null) ...[
@@ -202,7 +215,7 @@ class _AddTriggerDialogState extends ConsumerState<_AddTriggerDialog> {
             ),
             const SizedBox(height: 8),
             DropdownButtonFormField<String>(
-              initialValue: _type,
+              value: _type,
               decoration: const InputDecoration(labelText: 'Typ'),
               items: const [
                 DropdownMenuItem(value: 'Sensory', child: Text('Sensorisch')),
@@ -218,7 +231,7 @@ class _AddTriggerDialogState extends ConsumerState<_AddTriggerDialog> {
             ),
             const SizedBox(height: 8),
             DropdownButtonFormField<String>(
-              initialValue: _severity,
+              value: _severity,
               decoration: const InputDecoration(labelText: 'Schweregrad'),
               items: const [
                 DropdownMenuItem(value: 'Mild', child: Text('Mild')),

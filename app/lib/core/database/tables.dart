@@ -184,3 +184,21 @@ class JournalEntries extends Table {
   @override
   Set<Column> get primaryKey => {id};
 }
+
+@DataClassName('ConnectionData')
+class Connections extends Table {
+  @override
+  String get tableName => 'connections';
+
+  TextColumn get id => text().clientDefault(
+    () => DateTime.now().millisecondsSinceEpoch.toString(),
+  )();
+  TextColumn get remoteDeviceId => text()();
+  TextColumn get remoteDisplayName => text()();
+  TextColumn get role => text().withDefault(const Constant('partner'))();
+  BoolColumn get isActive => boolean().withDefault(const Constant(false))();
+  DateTimeColumn get pairedAt => dateTime().withDefault(currentDateAndTime)();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}

@@ -38,13 +38,14 @@ Future<String> _getOrCreateKey() async {
     EmergencyContacts,
     MedicalRecords,
     JournalEntries,
+    Connections,
   ],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 7;
+  int get schemaVersion => 8;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -55,12 +56,12 @@ class AppDatabase extends _$AppDatabase {
       if (from < 5) await m.createTable(emergencyContacts);
       if (from < 6) await m.createTable(medicalRecords);
       if (from < 7) await m.createTable(journalEntries);
+      if (from < 8) await m.createTable(connections);
     },
   );
 
   static Future<AppDatabase> open() async {
     applyWorkaroundToOpenSqlCipherOnOldAndroidVersions();
-
     sqlite_open.open.overrideFor(
       sqlite_open.OperatingSystem.android,
       openCipherOnAndroid,

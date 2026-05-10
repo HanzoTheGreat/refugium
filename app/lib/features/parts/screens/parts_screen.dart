@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../parts_provider.dart';
 import '../widgets/add_part_dialog.dart';
 import '../widgets/part_card.dart';
+import '../../../core/sync/app_mode_provider.dart';
 
 class PartsScreen extends ConsumerWidget {
   const PartsScreen({super.key});
@@ -10,6 +11,8 @@ class PartsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final partsAsync = ref.watch(partsProvider);
+    final mode = ref.watch(activeModeProvider);
+    final canEdit = mode == AppMode.patient;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Anteile')),
@@ -34,11 +37,15 @@ class PartsScreen extends ConsumerWidget {
           );
         },
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () =>
-            showDialog(context: context, builder: (_) => const AddPartDialog()),
-        child: const Icon(Icons.add),
-      ),
+      floatingActionButton: canEdit
+          ? FloatingActionButton(
+              onPressed: () => showDialog(
+                context: context,
+                builder: (_) => const AddPartDialog(),
+              ),
+              child: const Icon(Icons.add),
+            )
+          : null,
     );
   }
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:drift/drift.dart' hide Column;
 import '../../../core/database/database.dart';
+import '../../../core/sync/app_mode_provider.dart';
 import '../emergency_contacts_provider.dart';
 
 class EmergencyContactsScreen extends ConsumerWidget {
@@ -10,6 +11,8 @@ class EmergencyContactsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final contactsAsync = ref.watch(emergencyContactsProvider);
+    final mode = ref.watch(activeModeProvider);
+    final canEdit = mode == AppMode.patient;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Notfallkontakte')),
@@ -20,6 +23,21 @@ class EmergencyContactsScreen extends ConsumerWidget {
           if (contacts.isEmpty) {
             return const Center(
               child: Text('Noch keine Notfallkontakte eingetragen.'),
+            );
+          }
+          if (!canEdit) {
+            return ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: contacts.length,
+              itemBuilder: (context, index) {
+                final contact = contacts[index];
+                return _ContactCard(
+                  key: ValueKey(contact.id),
+                  contact: contact,
+                  rank: index + 1,
+                  canEdit: false,
+                );
+              },
             );
           }
           return ReorderableListView.builder(
@@ -43,18 +61,21 @@ class EmergencyContactsScreen extends ConsumerWidget {
                 key: ValueKey(contact.id),
                 contact: contact,
                 rank: index + 1,
+                canEdit: true,
               );
             },
           );
         },
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => showDialog(
-          context: context,
-          builder: (_) => const AddEditContactDialog(),
-        ),
-        child: const Icon(Icons.add),
-      ),
+      floatingActionButton: canEdit
+          ? FloatingActionButton(
+              onPressed: () => showDialog(
+                context: context,
+                builder: (_) => const AddEditContactDialog(),
+              ),
+              child: const Icon(Icons.add),
+            )
+          : null,
     );
   }
 }
@@ -62,8 +83,14 @@ class EmergencyContactsScreen extends ConsumerWidget {
 class _ContactCard extends ConsumerWidget {
   final EmergencyContactData contact;
   final int rank;
+  final bool canEdit;
 
-  const _ContactCard({super.key, required this.contact, required this.rank});
+  const _ContactCard({
+    super.key,
+    required this.contact,
+    required this.rank,
+    required this.canEdit,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -98,19 +125,21 @@ class _ContactCard extends ConsumerWidget {
                     ],
                   ),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.edit_outlined, size: 20),
-                  onPressed: () => showDialog(
-                    context: context,
-                    builder: (_) => AddEditContactDialog(contact: contact),
+                if (canEdit) ...[
+                  IconButton(
+                    icon: const Icon(Icons.edit_outlined, size: 20),
+                    onPressed: () => showDialog(
+                      context: context,
+                      builder: (_) => AddEditContactDialog(contact: contact),
+                    ),
+                    color: Colors.grey,
                   ),
-                  color: Colors.grey,
-                ),
-                IconButton(
-                  icon: const Icon(Icons.delete_outline, size: 20),
-                  onPressed: () => deleteEmergencyContact(ref, contact.id),
-                  color: Colors.grey,
-                ),
+                  IconButton(
+                    icon: const Icon(Icons.delete_outline, size: 20),
+                    onPressed: () => deleteEmergencyContact(ref, contact.id),
+                    color: Colors.grey,
+                  ),
+                ],
               ],
             ),
             const SizedBox(height: 8),
@@ -256,9 +285,8 @@ class _AddEditContactDialogState extends ConsumerState<AddEditContactDialog> {
 
   Future<void> _save() async {
     if (_nameController.text.trim().isEmpty ||
-        _phoneController.text.trim().isEmpty) {
+        _phoneController.text.trim().isEmpty)
       return;
-    }
     setState(() => _saving = true);
 
     if (_isEdit) {
@@ -322,7 +350,7 @@ class _AddEditContactDialogState extends ConsumerState<AddEditContactDialog> {
             _field('Erreichbar', _hoursController, hint: 'z.B. Mo–Fr 9–18 Uhr'),
             const SizedBox(height: 8),
             DropdownButtonFormField<String>(
-              initialValue: _preferredMethod,
+              value: _preferredMethod,
               decoration: const InputDecoration(
                 labelText: 'Bevorzugter Kontaktweg',
               ),

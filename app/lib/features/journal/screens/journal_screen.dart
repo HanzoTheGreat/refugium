@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/database/database.dart';
+import '../../../core/sync/app_mode_provider.dart';
 import '../../parts/parts_provider.dart';
 import '../journal_provider.dart';
 
@@ -11,6 +12,8 @@ class JournalScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final entriesAsync = ref.watch(journalEntriesProvider);
     final partsAsync = ref.watch(partsProvider);
+    final mode = ref.watch(activeModeProvider);
+    final canEdit = mode == AppMode.patient;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Journal')),
@@ -32,20 +35,22 @@ class JournalScreen extends ConsumerWidget {
                 final part = entry.partId != null
                     ? parts.where((p) => p.id == entry.partId).firstOrNull
                     : null;
-                return _JournalCard(entry: entry, part: part);
+                return _JournalCard(entry: entry, part: part, canEdit: canEdit);
               },
             ),
           );
         },
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => showModalBottomSheet(
-          context: context,
-          isScrollControlled: true,
-          builder: (_) => const _WriteEntrySheet(),
-        ),
-        child: const Icon(Icons.edit),
-      ),
+      floatingActionButton: canEdit
+          ? FloatingActionButton(
+              onPressed: () => showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                builder: (_) => const _WriteEntrySheet(),
+              ),
+              child: const Icon(Icons.edit),
+            )
+          : null,
     );
   }
 }
@@ -53,19 +58,22 @@ class JournalScreen extends ConsumerWidget {
 class _JournalCard extends ConsumerWidget {
   final JournalEntryData entry;
   final PartsData? part;
+  final bool canEdit;
 
-  const _JournalCard({required this.entry, this.part});
+  const _JournalCard({required this.entry, this.part, required this.canEdit});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       child: InkWell(
-        onTap: () => showModalBottomSheet(
-          context: context,
-          isScrollControlled: true,
-          builder: (_) => _WriteEntrySheet(entry: entry),
-        ),
+        onTap: canEdit
+            ? () => showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                builder: (_) => _WriteEntrySheet(entry: entry),
+              )
+            : null,
         borderRadius: BorderRadius.circular(12),
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -113,14 +121,16 @@ class _JournalCard extends ConsumerWidget {
                     _formatDate(entry.createdAt),
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
-                  const SizedBox(width: 8),
-                  IconButton(
-                    icon: const Icon(Icons.delete_outline, size: 18),
-                    onPressed: () => deleteJournalEntry(ref, entry.id),
-                    color: Colors.grey,
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                  ),
+                  if (canEdit) ...[
+                    const SizedBox(width: 8),
+                    IconButton(
+                      icon: const Icon(Icons.delete_outline, size: 18),
+                      onPressed: () => deleteJournalEntry(ref, entry.id),
+                      color: Colors.grey,
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                    ),
+                  ],
                 ],
               ),
               const SizedBox(height: 8),
@@ -228,11 +238,9 @@ class _WriteEntrySheetState extends ConsumerState<_WriteEntrySheet> {
             ],
           ),
           const SizedBox(height: 8),
-
-          // Anteil wählen
           partsAsync.maybeWhen(
             data: (parts) => DropdownButtonFormField<String?>(
-              initialValue: _selectedPartId,
+              value: _selectedPartId,
               decoration: const InputDecoration(labelText: 'Anteil (optional)'),
               items: [
                 const DropdownMenuItem(value: null, child: Text('Kein Anteil')),
@@ -250,8 +258,6 @@ class _WriteEntrySheetState extends ConsumerState<_WriteEntrySheet> {
             orElse: () => const SizedBox.shrink(),
           ),
           const SizedBox(height: 8),
-
-          // Stimmung
           Row(
             children: [
               Text('Stimmung:', style: Theme.of(context).textTheme.bodySmall),
@@ -277,8 +283,6 @@ class _WriteEntrySheetState extends ConsumerState<_WriteEntrySheet> {
             ],
           ),
           const SizedBox(height: 8),
-
-          // Inhalt
           TextField(
             controller: _contentController,
             maxLines: 6,
@@ -289,8 +293,6 @@ class _WriteEntrySheetState extends ConsumerState<_WriteEntrySheet> {
             ),
           ),
           const SizedBox(height: 8),
-
-          // Privat
           SwitchListTile(
             value: _isPrivate,
             onChanged: (v) => setState(() => _isPrivate = v),

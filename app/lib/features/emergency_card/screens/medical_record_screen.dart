@@ -2,6 +2,7 @@ import 'package:drift/drift.dart' hide Column;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/database/database.dart';
+import '../../../core/sync/app_mode_provider.dart';
 import '../medical_record_provider.dart';
 import '../../../main.dart';
 
@@ -97,6 +98,9 @@ class _MedicalRecordScreenState extends ConsumerState<MedicalRecordScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final mode = ref.watch(activeModeProvider);
+    final canEdit = mode == AppMode.patient;
+
     if (!_loaded) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
@@ -105,23 +109,48 @@ class _MedicalRecordScreenState extends ConsumerState<MedicalRecordScreen> {
       appBar: AppBar(
         title: const Text('Medizinische Daten'),
         actions: [
-          TextButton(
-            onPressed: _saving ? null : _save,
-            child: _saving
-                ? const SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Text('Speichern'),
-          ),
+          if (canEdit)
+            TextButton(
+              onPressed: _saving ? null : _save,
+              child: _saving
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Text('Speichern'),
+            ),
         ],
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          if (!canEdit)
+            Container(
+              margin: const EdgeInsets.only(bottom: 16),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.orange.shade50,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Row(
+                children: [
+                  Icon(Icons.visibility, size: 16, color: Colors.orange),
+                  SizedBox(width: 8),
+                  Text(
+                    'Nur-Lese-Ansicht',
+                    style: TextStyle(color: Colors.orange),
+                  ),
+                ],
+              ),
+            ),
           _SectionHeader('Allgemein'),
-          _field('Blutgruppe', _bloodTypeController, hint: 'z.B. A+, 0-, AB+'),
+          _field(
+            'Blutgruppe',
+            _bloodTypeController,
+            hint: 'z.B. A+, 0-, AB+',
+            enabled: canEdit,
+          ),
           const SizedBox(height: 16),
           _SectionHeader('Allergien'),
           _field(
@@ -129,6 +158,7 @@ class _MedicalRecordScreenState extends ConsumerState<MedicalRecordScreen> {
             _allergiesController,
             hint: 'z.B. Penicillin, Latex, Nüsse',
             maxLines: 3,
+            enabled: canEdit,
           ),
           const SizedBox(height: 16),
           _SectionHeader('Medikation'),
@@ -137,6 +167,7 @@ class _MedicalRecordScreenState extends ConsumerState<MedicalRecordScreen> {
             _medicationsController,
             hint: 'Name, Dosis, Häufigkeit – eine pro Zeile',
             maxLines: 4,
+            enabled: canEdit,
           ),
           const SizedBox(height: 16),
           _SectionHeader('Diagnosen'),
@@ -145,6 +176,7 @@ class _MedicalRecordScreenState extends ConsumerState<MedicalRecordScreen> {
             _diagnosesController,
             hint: 'z.B. F44.81 Dissoziative Identitätsstörung – eine pro Zeile',
             maxLines: 3,
+            enabled: canEdit,
           ),
           const SizedBox(height: 16),
           _SectionHeader('Behandelnde Person'),
@@ -152,6 +184,7 @@ class _MedicalRecordScreenState extends ConsumerState<MedicalRecordScreen> {
             'Hausarzt / Psychiater',
             _physicianController,
             hint: 'Name, Telefon',
+            enabled: canEdit,
           ),
           const SizedBox(height: 16),
           _SectionHeader('Krankenversicherung'),
@@ -159,8 +192,13 @@ class _MedicalRecordScreenState extends ConsumerState<MedicalRecordScreen> {
             'Krankenkasse',
             _insuranceProviderController,
             hint: 'z.B. AOK, TK, Barmer',
+            enabled: canEdit,
           ),
-          _field('Versichertennummer', _insuranceMemberIdController),
+          _field(
+            'Versichertennummer',
+            _insuranceMemberIdController,
+            enabled: canEdit,
+          ),
           const SizedBox(height: 16),
           _SectionHeader('Weitere Hinweise'),
           _field(
@@ -169,6 +207,7 @@ class _MedicalRecordScreenState extends ConsumerState<MedicalRecordScreen> {
             hint:
                 'z.B. abgelehnte Medikamente, besondere Hinweise für Notaufnahme',
             maxLines: 4,
+            enabled: canEdit,
           ),
         ],
       ),
@@ -180,16 +219,20 @@ class _MedicalRecordScreenState extends ConsumerState<MedicalRecordScreen> {
     TextEditingController controller, {
     String? hint,
     int maxLines = 1,
+    bool enabled = true,
   }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: TextField(
         controller: controller,
         maxLines: maxLines,
+        enabled: enabled,
         decoration: InputDecoration(
           labelText: label,
           hintText: hint,
           border: const OutlineInputBorder(),
+          filled: !enabled,
+          fillColor: enabled ? null : Colors.grey.shade50,
         ),
       ),
     );

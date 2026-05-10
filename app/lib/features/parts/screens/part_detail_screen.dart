@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/database/database.dart';
+import '../../../core/sync/app_mode_provider.dart';
 import '../parts_provider.dart';
 import 'edit_part_screen.dart';
 import 'consent_screen.dart';
@@ -13,6 +15,8 @@ class PartDetailScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final partsAsync = ref.watch(partsProvider);
+    final mode = ref.watch(activeModeProvider);
+    final canEdit = mode == AppMode.patient;
 
     return partsAsync.when(
       loading: () =>
@@ -27,29 +31,36 @@ class PartDetailScreen extends ConsumerWidget {
           appBar: AppBar(
             title: Text(part.displayName ?? 'Unbenannt'),
             actions: [
-              IconButton(
-                icon: const Icon(Icons.edit),
-                onPressed: () => Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => EditPartScreen(part: part)),
-                ),
-              ),
-              PopupMenuButton<String>(
-                onSelected: (value) async {
-                  await ref
-                      .read(partsProvider.notifier)
-                      .setPartStatus(part.id, value);
-                  if (context.mounted) Navigator.of(context).pop();
-                },
-                itemBuilder: (_) => const [
-                  PopupMenuItem(value: 'Active', child: Text('Aktiv')),
-                  PopupMenuItem(value: 'Dormant', child: Text('Ruhend')),
-                  PopupMenuItem(value: 'Integrated', child: Text('Integriert')),
-                  PopupMenuItem(
-                    value: 'Hypothetical',
-                    child: Text('Hypothetisch'),
+              if (canEdit) ...[
+                IconButton(
+                  icon: const Icon(Icons.edit),
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => EditPartScreen(part: part),
+                    ),
                   ),
-                ],
-              ),
+                ),
+                PopupMenuButton<String>(
+                  onSelected: (value) async {
+                    await ref
+                        .read(partsProvider.notifier)
+                        .setPartStatus(part.id, value);
+                    if (context.mounted) Navigator.of(context).pop();
+                  },
+                  itemBuilder: (_) => const [
+                    PopupMenuItem(value: 'Active', child: Text('Aktiv')),
+                    PopupMenuItem(value: 'Dormant', child: Text('Ruhend')),
+                    PopupMenuItem(
+                      value: 'Integrated',
+                      child: Text('Integriert'),
+                    ),
+                    PopupMenuItem(
+                      value: 'Hypothetical',
+                      child: Text('Hypothetisch'),
+                    ),
+                  ],
+                ),
+              ],
             ],
           ),
           body: ListView(
@@ -76,30 +87,57 @@ class PartDetailScreen extends ConsumerWidget {
                 title: 'Beschreibung (extern)',
                 children: [_Field(null, part.descriptionExternal)],
               ),
-              const SizedBox(height: 16),
-              FilledButton.tonal(
-                onPressed: () => Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => ConsentScreen(
-                      partId: part.id,
-                      partName: part.displayName ?? 'Unbenannt',
+              if (canEdit) ...[
+                const SizedBox(height: 16),
+                FilledButton.tonal(
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => ConsentScreen(
+                        partId: part.id,
+                        partName: part.displayName ?? 'Unbenannt',
+                      ),
                     ),
                   ),
+                  child: const Text('Consent-Profil bearbeiten'),
                 ),
-                child: const Text('Consent-Profil bearbeiten'),
-              ),
-              const SizedBox(height: 8),
-              FilledButton.tonal(
-                onPressed: () => Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => TriggerScreen(
-                      partId: part.id,
-                      partName: part.displayName ?? 'Unbenannt',
+                const SizedBox(height: 8),
+                FilledButton.tonal(
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => TriggerScreen(
+                        partId: part.id,
+                        partName: part.displayName ?? 'Unbenannt',
+                      ),
                     ),
                   ),
+                  child: const Text('Trigger bearbeiten'),
                 ),
-                child: const Text('Trigger bearbeiten'),
-              ),
+              ] else ...[
+                const SizedBox(height: 16),
+                FilledButton.tonal(
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => ConsentScreen(
+                        partId: part.id,
+                        partName: part.displayName ?? 'Unbenannt',
+                      ),
+                    ),
+                  ),
+                  child: const Text('Consent-Profil ansehen'),
+                ),
+                const SizedBox(height: 8),
+                FilledButton.tonal(
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => TriggerScreen(
+                        partId: part.id,
+                        partName: part.displayName ?? 'Unbenannt',
+                      ),
+                    ),
+                  ),
+                  child: const Text('Trigger ansehen'),
+                ),
+              ],
             ],
           ),
         );
