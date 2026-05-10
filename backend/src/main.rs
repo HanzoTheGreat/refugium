@@ -1,5 +1,7 @@
 use axum::routing::get;
 use axum::Router;
+use axum_server::tls_rustls::RustlsConfig;
+use std::path::PathBuf;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 mod routes;
@@ -20,7 +22,7 @@ async fn main() {
         .init();
 
     let database_url = std::env::var("DATABASE_URL")
-        .unwrap_or_else(|_| "sqlite:refugium.db".into());
+        .unwrap_or_else(|_| "sqlite:///home/necrohanzo/refugium/backend/refugium.db".into());
 
     let ntfy_url = std::env::var("NTFY_URL")
         .unwrap_or_else(|_| "http://localhost:7867".into());
@@ -35,15 +37,28 @@ async fn main() {
         .route("/health", get(health))
         .nest("/api/v1", api_routes);
 
-    let bind_addr = std::env::var("BIND_ADDR")
-        .unwrap_or_else(|_| "127.0.0.1:8080".into());
+    let cert_path = std::env::var("TLS_CERT")
+        .unwrap_or_else(|_| "/etc/letsencrypt/live/refugium-sync.dedyn.io/fullchain.pem".into());
+    let key_path = std::env::var("TLS_KEY")
+        .unwrap_or_else(|_| "/etc/letsencrypt/live/refugium-sync.dedyn.io/privkey.pem".into());
 
-    let listener = tokio::net::TcpListener::bind(&bind_addr)
+    let tls_config = RustlsConfig::from_pem_file(
+        PathBuf::from(cert_path),
+        PathBuf::from(key_path),
+    )
+    .await
+    .expect("TLS-Konfiguration fehlgeschlagen");
+
+    let bind_addr = std::env::var("BIND_ADDR")
+        .unwrap_or_else(|_| "0.0.0.0:443".into());
+
+    let addr = bind_addr.parse().unwrap();
+    tracing::info!("Listening on https://{}", addr);
+
+    axum_server::bind_rustls(addr, tls_config)
+        .serve(app.into_make_service())
         .await
         .unwrap();
-
-    tracing::info!("Listening on {}", listener.local_addr().unwrap());
-    axum::serve(listener, app).await.unwrap();
 }
 
 async fn health() -> &'static str {
