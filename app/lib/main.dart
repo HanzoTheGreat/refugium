@@ -7,6 +7,7 @@ import 'features/emergency_card/screens/emergency_card_screen.dart';
 import 'features/emergency_card/screens/emergency_contacts_screen.dart';
 import 'features/emergency_card/screens/medical_record_screen.dart';
 import 'features/journal/screens/journal_screen.dart';
+import 'features/switch_tracker/screens/pairing_screen.dart';
 
 final databaseProvider = Provider<AppDatabase>((ref) {
   throw UnimplementedError('Database not initialized');
@@ -65,6 +66,18 @@ class _MainShellState extends State<MainShell> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: const Text('Refugium'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.link),
+            tooltip: 'Gerät verbinden',
+            onPressed: () => Navigator.of(
+              context,
+            ).push(MaterialPageRoute(builder: (_) => const PairingScreen())),
+          ),
+        ],
+      ),
       body: _screens[_index],
       bottomNavigationBar: NavigationBar(
         selectedIndex: _index,
