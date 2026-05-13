@@ -83,7 +83,6 @@ class _PairingScreenState extends ConsumerState<PairingScreen> {
 
       await client.confirmPairing(pairingId, deviceId);
 
-      // In connections-Tabelle speichern
       final displayName = _displayNameController.text.trim().isEmpty
           ? 'Verbundenes Gerät'
           : _displayNameController.text.trim();
@@ -95,6 +94,16 @@ class _PairingScreenState extends ConsumerState<PairingScreen> {
         role: role,
         makeActive: true,
       );
+
+      // Initiator über unsere Device-ID informieren
+      try {
+        await client.sendMessage(
+          senderDeviceId: deviceId,
+          recipientDeviceId: initiatorId,
+          payload: '{"device_id":"$deviceId"}',
+          messageType: 'DeviceIntroduction',
+        );
+      } catch (_) {}
 
       ref.invalidate(syncProvider);
 
@@ -126,15 +135,10 @@ class _PairingScreenState extends ConsumerState<PairingScreen> {
       );
       await storage.write(key: _pairingIdKey, value: _generatedPairingId);
 
-      // Wir wissen hier nicht die Remote-Device-ID des Partners
-      // Sie wird beim nächsten Sync-Event bekannt
-      // Für jetzt: placeholder in connections speichern
       final displayName = _displayNameController.text.trim().isEmpty
           ? 'Verbundenes Gerät'
           : _displayNameController.text.trim();
 
-      // Partner-Device-ID kommt vom ersten eingehenden Sync-Event
-      // Vorerst speichern wir einen Placeholder
       await addConnection(
         ref,
         remoteDeviceId: 'pending_${_generatedPairingId!}',
@@ -170,7 +174,6 @@ class _PairingScreenState extends ConsumerState<PairingScreen> {
         data: (sync) => ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            // Geräte-ID Info
             Card(
               child: Padding(
                 padding: const EdgeInsets.all(12),
@@ -219,8 +222,6 @@ class _PairingScreenState extends ConsumerState<PairingScreen> {
               ),
             ),
             const SizedBox(height: 16),
-
-            // Display-Name für Verbindung
             TextField(
               controller: _displayNameController,
               decoration: const InputDecoration(
@@ -230,7 +231,6 @@ class _PairingScreenState extends ConsumerState<PairingScreen> {
               ),
             ),
             const SizedBox(height: 16),
-
             if (_error != null) ...[
               Card(
                 color: Colors.red.shade50,
@@ -244,8 +244,6 @@ class _PairingScreenState extends ConsumerState<PairingScreen> {
               ),
               const SizedBox(height: 16),
             ],
-
-            // Einladung erstellen
             Text(
               'Einladung erstellen',
               style: Theme.of(context).textTheme.titleSmall,
@@ -274,8 +272,6 @@ class _PairingScreenState extends ConsumerState<PairingScreen> {
               icon: const Icon(Icons.qr_code),
               label: const Text('Einladungscode generieren'),
             ),
-
-            // Generierter Code + QR
             if (_generatedCode != null) ...[
               const SizedBox(height: 16),
               Card(
@@ -334,16 +330,12 @@ class _PairingScreenState extends ConsumerState<PairingScreen> {
                 ),
               ),
             ],
-
             const Divider(height: 40),
-
-            // Mit Code verbinden
             Text(
               'Mit Code verbinden',
               style: Theme.of(context).textTheme.titleSmall,
             ),
             const SizedBox(height: 8),
-
             if (_showScanner) ...[
               SizedBox(
                 height: 240,
@@ -373,7 +365,6 @@ class _PairingScreenState extends ConsumerState<PairingScreen> {
               ),
               const SizedBox(height: 8),
             ],
-
             TextField(
               controller: _codeController,
               decoration: const InputDecoration(

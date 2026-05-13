@@ -52,12 +52,14 @@ class SwitchEvents extends Table {
   TextColumn get id => text().clientDefault(
     () => DateTime.now().millisecondsSinceEpoch.toString(),
   )();
-  TextColumn get partId => text().references(Parts, #id)();
+  TextColumn get partId => text()();
   DateTimeColumn get timestamp => dateTime().withDefault(currentDateAndTime)();
   TextColumn get markedBy =>
       text().withDefault(const Constant('SelfCheckin'))();
   TextColumn get contextTags => text().nullable()();
   TextColumn get note => text().nullable()();
+  // Für eingehende Remote-Events: Name des Anteils vom anderen Gerät
+  TextColumn get remotePartName => text().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -69,7 +71,6 @@ class ConsentProfiles extends Table {
   String get tableName => 'consent_profiles';
 
   TextColumn get partId => text().references(Parts, #id)();
-
   TextColumn get touchGeneral =>
       text().withDefault(const Constant('Unknown'))();
   TextColumn get touchIntimate =>
@@ -78,14 +79,12 @@ class ConsentProfiles extends Table {
   TextColumn get petNames => text().withDefault(const Constant('Unknown'))();
   TextColumn get sexualActivity =>
       text().withDefault(const Constant('Unknown'))();
-
   TextColumn get driving => text().withDefault(const Constant('Unknown'))();
   TextColumn get alcohol => text().withDefault(const Constant('Unknown'))();
   TextColumn get decisionsFinancial =>
       text().withDefault(const Constant('Unknown'))();
   TextColumn get decisionsMedical =>
       text().withDefault(const Constant('Unknown'))();
-
   TextColumn get notes => text().nullable()();
   DateTimeColumn get lastReviewed =>
       dateTime().withDefault(currentDateAndTime)();

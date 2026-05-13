@@ -110,6 +110,8 @@ class SyncService {
   Future<void> _pollServer() async {
     if (_serverUrl == null || _deviceId == null) return;
 
+    _partnerDeviceId = await _storage.read(key: 'refugium_partner_device_id');
+
     try {
       final client = ApiClient(baseUrl: _serverUrl!);
       final messages = await client.fetchMessages(_deviceId!);
@@ -237,19 +239,37 @@ class SyncService {
     final data = jsonDecode(payload) as Map<String, dynamic>;
 
     switch (messageType) {
+      case 'DeviceIntroduction':
+        final remoteDeviceId = data['device_id'] as String?;
+        if (remoteDeviceId != null) {
+          await _storage.write(
+            key: 'refugium_partner_device_id',
+            value: remoteDeviceId,
+          );
+          _partnerDeviceId = remoteDeviceId;
+          await _updatePendingConnection(remoteDeviceId);
+        }
+        break;
+
       case 'SwitchEvent':
-        final partId = data['part_id'] as String?;
+        final partId = data['part_id'] as String? ?? 'remote';
+        final partName = data['part_name'] as String? ?? 'Unbekannt';
         final note = data['note'] as String?;
 
-        String partName = 'Unbekannt';
-        if (_ref != null && partId != null) {
+        // In lokale DB speichern als PartnerObservation
+        if (_ref != null) {
           try {
             final db = _ref!.read(databaseProvider);
-            final parts = await db.select(db.parts).get();
-            final part = parts.where((p) => p.id == partId).firstOrNull;
-            if (part != null) {
-              partName = part.displayName ?? 'Unbekannt';
-            }
+            await db
+                .into(db.switchEvents)
+                .insert(
+                  SwitchEventsCompanion.insert(
+                    partId: partId,
+                    markedBy: const drift.Value('PartnerObservation'),
+                    note: drift.Value(note),
+                    remotePartName: drift.Value(partName),
+                  ),
+                );
           } catch (_) {}
         }
 

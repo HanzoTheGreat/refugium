@@ -3,9 +3,28 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../parts/parts_provider.dart';
 import '../../parts/consent_provider.dart';
 import '../switch_tracker_provider.dart';
+import '../../../core/sync/app_mode_provider.dart';
+import '../../../core/sync/connection_provider.dart';
 
 class SwitchTrackerScreen extends ConsumerWidget {
   const SwitchTrackerScreen({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final mode = ref.watch(activeModeProvider);
+    final isPatient = mode == AppMode.patient;
+
+    if (isPatient) {
+      return const _PatientSwitchTracker();
+    } else {
+      return const _PartnerSwitchTracker();
+    }
+  }
+}
+
+// Patient-Modus: lokale Daten, kann einchecken
+class _PatientSwitchTracker extends ConsumerWidget {
+  const _PatientSwitchTracker();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -17,7 +36,6 @@ class SwitchTrackerScreen extends ConsumerWidget {
       appBar: AppBar(title: const Text('Wer ist vorne?')),
       body: CustomScrollView(
         slivers: [
-          // Aktueller Anteil
           SliverToBoxAdapter(
             child: currentAsync.when(
               loading: () => const Padding(
@@ -73,8 +91,6 @@ class SwitchTrackerScreen extends ConsumerWidget {
               ),
             ),
           ),
-
-          // Anteil wechseln
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
@@ -97,24 +113,22 @@ class SwitchTrackerScreen extends ConsumerWidget {
                   child: Wrap(
                     spacing: 8,
                     runSpacing: 8,
-                    children: activeParts.map((part) {
-                      return ActionChip(
-                        label: Text(part.displayName ?? 'Unbenannt'),
-                        onPressed: () => ref
-                            .read(switchTrackerProvider.notifier)
-                            .switchTo(part.id),
-                      );
-                    }).toList(),
+                    children: activeParts
+                        .map(
+                          (part) => ActionChip(
+                            label: Text(part.displayName ?? 'Unbenannt'),
+                            onPressed: () => ref
+                                .read(switchTrackerProvider.notifier)
+                                .switchTo(part.id),
+                          ),
+                        )
+                        .toList(),
                   ),
                 );
               },
             ),
           ),
-
-          // Divider
           const SliverToBoxAdapter(child: Divider(height: 32)),
-
-          // History Header
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -125,8 +139,6 @@ class SwitchTrackerScreen extends ConsumerWidget {
             ),
           ),
           const SliverToBoxAdapter(child: SizedBox(height: 8)),
-
-          // History Liste
           historyAsync.when(
             loading: () => const SliverToBoxAdapter(
               child: Center(child: CircularProgressIndicator()),
@@ -162,8 +174,150 @@ class SwitchTrackerScreen extends ConsumerWidget {
               },
             ),
           ),
+          const SliverToBoxAdapter(child: SizedBox(height: 24)),
+        ],
+      ),
+    );
+  }
 
-          // Bottom padding
+  String _formatTime(DateTime dt) {
+    return '${dt.day.toString().padLeft(2, '0')}.${dt.month.toString().padLeft(2, '0')}.${dt.year}  ${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+  }
+}
+
+// Partner/Therapeut-Modus: Remote-Daten, nur lesen
+class _PartnerSwitchTracker extends ConsumerWidget {
+  const _PartnerSwitchTracker();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final currentAsync = ref.watch(remoteCurrentPartProvider);
+    final historyAsync = ref.watch(remoteSwitchHistoryProvider);
+    final connectionsAsync = ref.watch(connectionsProvider);
+
+    final connectionName =
+        connectionsAsync.asData?.value
+            .where((c) => c.isActive)
+            .firstOrNull
+            ?.remoteDisplayName ??
+        'Verbundenes System';
+
+    return Scaffold(
+      appBar: AppBar(title: Text('Wer ist vorne? · $connectionName')),
+      body: CustomScrollView(
+        slivers: [
+          // Aktueller Anteil (remote)
+          SliverToBoxAdapter(
+            child: currentAsync.when(
+              loading: () => const Padding(
+                padding: EdgeInsets.all(24),
+                child: Center(child: CircularProgressIndicator()),
+              ),
+              error: (e, _) => Padding(
+                padding: const EdgeInsets.all(16),
+                child: Text('Fehler: $e'),
+              ),
+              data: (current) {
+                final partName =
+                    current?.remotePartName ??
+                    current?.partId ??
+                    'Noch kein Einchecken';
+                final hasData = current != null;
+
+                return Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(24),
+                  color: Theme.of(context).colorScheme.primaryContainer,
+                  child: Column(
+                    children: [
+                      Text(
+                        'Aktuell vorne',
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        hasData ? partName : 'Noch kein Einchecken',
+                        style: Theme.of(context).textTheme.headlineMedium,
+                      ),
+                      if (hasData) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          'Zuletzt: ${_formatTime(current!.timestamp)}',
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      ],
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
+
+          // Info-Banner
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.info_outline,
+                    size: 16,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Du siehst Echtzeit-Updates wenn $connectionName eincheckt.',
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          const SliverToBoxAdapter(child: Divider(height: 1)),
+
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+              child: Text(
+                'Letzte Wechsel',
+                style: Theme.of(context).textTheme.titleSmall,
+              ),
+            ),
+          ),
+          const SliverToBoxAdapter(child: SizedBox(height: 8)),
+
+          historyAsync.when(
+            loading: () => const SliverToBoxAdapter(
+              child: Center(child: CircularProgressIndicator()),
+            ),
+            error: (e, _) =>
+                SliverToBoxAdapter(child: Center(child: Text('Fehler: $e'))),
+            data: (history) {
+              if (history.isEmpty) {
+                return const SliverToBoxAdapter(
+                  child: Padding(
+                    padding: EdgeInsets.all(16),
+                    child: Center(child: Text('Noch keine Wechsel empfangen')),
+                  ),
+                );
+              }
+              return SliverList(
+                delegate: SliverChildBuilderDelegate((context, index) {
+                  final event = history[index];
+                  final name = event.remotePartName ?? event.partId;
+                  return ListTile(
+                    title: Text(name),
+                    subtitle: Text(_formatTime(event.timestamp)),
+                    leading: const Icon(Icons.swap_horiz),
+                  );
+                }, childCount: history.length),
+              );
+            },
+          ),
+
           const SliverToBoxAdapter(child: SizedBox(height: 24)),
         ],
       ),

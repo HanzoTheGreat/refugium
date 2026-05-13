@@ -46,7 +46,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 8;
+  int get schemaVersion => 9;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -58,6 +58,11 @@ class AppDatabase extends _$AppDatabase {
       if (from < 6) await m.createTable(medicalRecords);
       if (from < 7) await m.createTable(journalEntries);
       if (from < 8) await m.createTable(connections);
+      if (from < 9) {
+        await customStatement(
+          'ALTER TABLE switch_events ADD COLUMN remote_part_name TEXT;',
+        );
+      }
     },
   );
 
@@ -72,7 +77,6 @@ class AppDatabase extends _$AppDatabase {
     final dbFolder = await getApplicationDocumentsDirectory();
     final dbFile = File(p.join(dbFolder.path, 'refugium.db'));
 
-    // Korrupte oder unlesbare DB erkennen und löschen
     if (await dbFile.exists()) {
       try {
         final testDb = sqlite3_lib.sqlite3.open(dbFile.path);
@@ -80,7 +84,6 @@ class AppDatabase extends _$AppDatabase {
         testDb.execute("PRAGMA user_version;");
         testDb.dispose();
       } catch (_) {
-        // DB nicht lesbar – löschen und neu anlegen
         await dbFile.delete();
       }
     }

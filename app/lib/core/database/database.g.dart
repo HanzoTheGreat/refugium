@@ -1297,9 +1297,6 @@ class $SwitchEventsTable extends SwitchEvents
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'REFERENCES parts (id)',
-    ),
   );
   static const VerificationMeta _timestampMeta = const VerificationMeta(
     'timestamp',
@@ -1345,6 +1342,17 @@ class $SwitchEventsTable extends SwitchEvents
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _remotePartNameMeta = const VerificationMeta(
+    'remotePartName',
+  );
+  @override
+  late final GeneratedColumn<String> remotePartName = GeneratedColumn<String>(
+    'remote_part_name',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -1353,6 +1361,7 @@ class $SwitchEventsTable extends SwitchEvents
     markedBy,
     contextTags,
     note,
+    remotePartName,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -1404,6 +1413,15 @@ class $SwitchEventsTable extends SwitchEvents
         note.isAcceptableOrUnknown(data['note']!, _noteMeta),
       );
     }
+    if (data.containsKey('remote_part_name')) {
+      context.handle(
+        _remotePartNameMeta,
+        remotePartName.isAcceptableOrUnknown(
+          data['remote_part_name']!,
+          _remotePartNameMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -1437,6 +1455,10 @@ class $SwitchEventsTable extends SwitchEvents
         DriftSqlType.string,
         data['${effectivePrefix}note'],
       ),
+      remotePartName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}remote_part_name'],
+      ),
     );
   }
 
@@ -1454,6 +1476,7 @@ class SwitchEventsData extends DataClass
   final String markedBy;
   final String? contextTags;
   final String? note;
+  final String? remotePartName;
   const SwitchEventsData({
     required this.id,
     required this.partId,
@@ -1461,6 +1484,7 @@ class SwitchEventsData extends DataClass
     required this.markedBy,
     this.contextTags,
     this.note,
+    this.remotePartName,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -1475,6 +1499,9 @@ class SwitchEventsData extends DataClass
     if (!nullToAbsent || note != null) {
       map['note'] = Variable<String>(note);
     }
+    if (!nullToAbsent || remotePartName != null) {
+      map['remote_part_name'] = Variable<String>(remotePartName);
+    }
     return map;
   }
 
@@ -1488,6 +1515,9 @@ class SwitchEventsData extends DataClass
           ? const Value.absent()
           : Value(contextTags),
       note: note == null && nullToAbsent ? const Value.absent() : Value(note),
+      remotePartName: remotePartName == null && nullToAbsent
+          ? const Value.absent()
+          : Value(remotePartName),
     );
   }
 
@@ -1503,6 +1533,7 @@ class SwitchEventsData extends DataClass
       markedBy: serializer.fromJson<String>(json['markedBy']),
       contextTags: serializer.fromJson<String?>(json['contextTags']),
       note: serializer.fromJson<String?>(json['note']),
+      remotePartName: serializer.fromJson<String?>(json['remotePartName']),
     );
   }
   @override
@@ -1515,6 +1546,7 @@ class SwitchEventsData extends DataClass
       'markedBy': serializer.toJson<String>(markedBy),
       'contextTags': serializer.toJson<String?>(contextTags),
       'note': serializer.toJson<String?>(note),
+      'remotePartName': serializer.toJson<String?>(remotePartName),
     };
   }
 
@@ -1525,6 +1557,7 @@ class SwitchEventsData extends DataClass
     String? markedBy,
     Value<String?> contextTags = const Value.absent(),
     Value<String?> note = const Value.absent(),
+    Value<String?> remotePartName = const Value.absent(),
   }) => SwitchEventsData(
     id: id ?? this.id,
     partId: partId ?? this.partId,
@@ -1532,6 +1565,9 @@ class SwitchEventsData extends DataClass
     markedBy: markedBy ?? this.markedBy,
     contextTags: contextTags.present ? contextTags.value : this.contextTags,
     note: note.present ? note.value : this.note,
+    remotePartName: remotePartName.present
+        ? remotePartName.value
+        : this.remotePartName,
   );
   SwitchEventsData copyWithCompanion(SwitchEventsCompanion data) {
     return SwitchEventsData(
@@ -1543,6 +1579,9 @@ class SwitchEventsData extends DataClass
           ? data.contextTags.value
           : this.contextTags,
       note: data.note.present ? data.note.value : this.note,
+      remotePartName: data.remotePartName.present
+          ? data.remotePartName.value
+          : this.remotePartName,
     );
   }
 
@@ -1554,14 +1593,22 @@ class SwitchEventsData extends DataClass
           ..write('timestamp: $timestamp, ')
           ..write('markedBy: $markedBy, ')
           ..write('contextTags: $contextTags, ')
-          ..write('note: $note')
+          ..write('note: $note, ')
+          ..write('remotePartName: $remotePartName')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode =>
-      Object.hash(id, partId, timestamp, markedBy, contextTags, note);
+  int get hashCode => Object.hash(
+    id,
+    partId,
+    timestamp,
+    markedBy,
+    contextTags,
+    note,
+    remotePartName,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1571,7 +1618,8 @@ class SwitchEventsData extends DataClass
           other.timestamp == this.timestamp &&
           other.markedBy == this.markedBy &&
           other.contextTags == this.contextTags &&
-          other.note == this.note);
+          other.note == this.note &&
+          other.remotePartName == this.remotePartName);
 }
 
 class SwitchEventsCompanion extends UpdateCompanion<SwitchEventsData> {
@@ -1581,6 +1629,7 @@ class SwitchEventsCompanion extends UpdateCompanion<SwitchEventsData> {
   final Value<String> markedBy;
   final Value<String?> contextTags;
   final Value<String?> note;
+  final Value<String?> remotePartName;
   final Value<int> rowid;
   const SwitchEventsCompanion({
     this.id = const Value.absent(),
@@ -1589,6 +1638,7 @@ class SwitchEventsCompanion extends UpdateCompanion<SwitchEventsData> {
     this.markedBy = const Value.absent(),
     this.contextTags = const Value.absent(),
     this.note = const Value.absent(),
+    this.remotePartName = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   SwitchEventsCompanion.insert({
@@ -1598,6 +1648,7 @@ class SwitchEventsCompanion extends UpdateCompanion<SwitchEventsData> {
     this.markedBy = const Value.absent(),
     this.contextTags = const Value.absent(),
     this.note = const Value.absent(),
+    this.remotePartName = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : partId = Value(partId);
   static Insertable<SwitchEventsData> custom({
@@ -1607,6 +1658,7 @@ class SwitchEventsCompanion extends UpdateCompanion<SwitchEventsData> {
     Expression<String>? markedBy,
     Expression<String>? contextTags,
     Expression<String>? note,
+    Expression<String>? remotePartName,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -1616,6 +1668,7 @@ class SwitchEventsCompanion extends UpdateCompanion<SwitchEventsData> {
       if (markedBy != null) 'marked_by': markedBy,
       if (contextTags != null) 'context_tags': contextTags,
       if (note != null) 'note': note,
+      if (remotePartName != null) 'remote_part_name': remotePartName,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -1627,6 +1680,7 @@ class SwitchEventsCompanion extends UpdateCompanion<SwitchEventsData> {
     Value<String>? markedBy,
     Value<String?>? contextTags,
     Value<String?>? note,
+    Value<String?>? remotePartName,
     Value<int>? rowid,
   }) {
     return SwitchEventsCompanion(
@@ -1636,6 +1690,7 @@ class SwitchEventsCompanion extends UpdateCompanion<SwitchEventsData> {
       markedBy: markedBy ?? this.markedBy,
       contextTags: contextTags ?? this.contextTags,
       note: note ?? this.note,
+      remotePartName: remotePartName ?? this.remotePartName,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -1661,6 +1716,9 @@ class SwitchEventsCompanion extends UpdateCompanion<SwitchEventsData> {
     if (note.present) {
       map['note'] = Variable<String>(note.value);
     }
+    if (remotePartName.present) {
+      map['remote_part_name'] = Variable<String>(remotePartName.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -1676,6 +1734,7 @@ class SwitchEventsCompanion extends UpdateCompanion<SwitchEventsData> {
           ..write('markedBy: $markedBy, ')
           ..write('contextTags: $contextTags, ')
           ..write('note: $note, ')
+          ..write('remotePartName: $remotePartName, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -5533,24 +5592,6 @@ final class $$PartsTableReferences
     extends BaseReferences<_$AppDatabase, $PartsTable, PartsData> {
   $$PartsTableReferences(super.$_db, super.$_table, super.$_typedResult);
 
-  static MultiTypedResultKey<$SwitchEventsTable, List<SwitchEventsData>>
-  _switchEventsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
-    db.switchEvents,
-    aliasName: $_aliasNameGenerator(db.parts.id, db.switchEvents.partId),
-  );
-
-  $$SwitchEventsTableProcessedTableManager get switchEventsRefs {
-    final manager = $$SwitchEventsTableTableManager(
-      $_db,
-      $_db.switchEvents,
-    ).filter((f) => f.partId.id.sqlEquals($_itemColumn<String>('id')!));
-
-    final cache = $_typedResult.readTableOrNull(_switchEventsRefsTable($_db));
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: cache),
-    );
-  }
-
   static MultiTypedResultKey<$ConsentProfilesTable, List<ConsentProfileData>>
   _consentProfilesRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
     db.consentProfiles,
@@ -5685,31 +5726,6 @@ class $$PartsTableFilterComposer extends Composer<_$AppDatabase, $PartsTable> {
     column: $table.updatedAt,
     builder: (column) => ColumnFilters(column),
   );
-
-  Expression<bool> switchEventsRefs(
-    Expression<bool> Function($$SwitchEventsTableFilterComposer f) f,
-  ) {
-    final $$SwitchEventsTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.id,
-      referencedTable: $db.switchEvents,
-      getReferencedColumn: (t) => t.partId,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$SwitchEventsTableFilterComposer(
-            $db: $db,
-            $table: $db.switchEvents,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return f(composer);
-  }
 
   Expression<bool> consentProfilesRefs(
     Expression<bool> Function($$ConsentProfilesTableFilterComposer f) f,
@@ -5932,31 +5948,6 @@ class $$PartsTableAnnotationComposer
   GeneratedColumn<DateTime> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
 
-  Expression<T> switchEventsRefs<T extends Object>(
-    Expression<T> Function($$SwitchEventsTableAnnotationComposer a) f,
-  ) {
-    final $$SwitchEventsTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.id,
-      referencedTable: $db.switchEvents,
-      getReferencedColumn: (t) => t.partId,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$SwitchEventsTableAnnotationComposer(
-            $db: $db,
-            $table: $db.switchEvents,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return f(composer);
-  }
-
   Expression<T> consentProfilesRefs<T extends Object>(
     Expression<T> Function($$ConsentProfilesTableAnnotationComposer a) f,
   ) {
@@ -6047,7 +6038,6 @@ class $$PartsTableTableManager
           (PartsData, $$PartsTableReferences),
           PartsData,
           PrefetchHooks Function({
-            bool switchEventsRefs,
             bool consentProfilesRefs,
             bool triggerEntriesRefs,
             bool journalEntriesRefs,
@@ -6140,7 +6130,6 @@ class $$PartsTableTableManager
               .toList(),
           prefetchHooksCallback:
               ({
-                switchEventsRefs = false,
                 consentProfilesRefs = false,
                 triggerEntriesRefs = false,
                 journalEntriesRefs = false,
@@ -6148,7 +6137,6 @@ class $$PartsTableTableManager
                 return PrefetchHooks(
                   db: db,
                   explicitlyWatchedTables: [
-                    if (switchEventsRefs) db.switchEvents,
                     if (consentProfilesRefs) db.consentProfiles,
                     if (triggerEntriesRefs) db.triggerEntries,
                     if (journalEntriesRefs) db.journalEntries,
@@ -6156,27 +6144,6 @@ class $$PartsTableTableManager
                   addJoins: null,
                   getPrefetchedDataCallback: (items) async {
                     return [
-                      if (switchEventsRefs)
-                        await $_getPrefetchedData<
-                          PartsData,
-                          $PartsTable,
-                          SwitchEventsData
-                        >(
-                          currentTable: table,
-                          referencedTable: $$PartsTableReferences
-                              ._switchEventsRefsTable(db),
-                          managerFromTypedResult: (p0) =>
-                              $$PartsTableReferences(
-                                db,
-                                table,
-                                p0,
-                              ).switchEventsRefs,
-                          referencedItemsForCurrentItem:
-                              (item, referencedItems) => referencedItems.where(
-                                (e) => e.partId == item.id,
-                              ),
-                          typedResults: items,
-                        ),
                       if (consentProfilesRefs)
                         await $_getPrefetchedData<
                           PartsData,
@@ -6261,7 +6228,6 @@ typedef $$PartsTableProcessedTableManager =
       (PartsData, $$PartsTableReferences),
       PartsData,
       PrefetchHooks Function({
-        bool switchEventsRefs,
         bool consentProfilesRefs,
         bool triggerEntriesRefs,
         bool journalEntriesRefs,
@@ -6275,6 +6241,7 @@ typedef $$SwitchEventsTableCreateCompanionBuilder =
       Value<String> markedBy,
       Value<String?> contextTags,
       Value<String?> note,
+      Value<String?> remotePartName,
       Value<int> rowid,
     });
 typedef $$SwitchEventsTableUpdateCompanionBuilder =
@@ -6285,32 +6252,9 @@ typedef $$SwitchEventsTableUpdateCompanionBuilder =
       Value<String> markedBy,
       Value<String?> contextTags,
       Value<String?> note,
+      Value<String?> remotePartName,
       Value<int> rowid,
     });
-
-final class $$SwitchEventsTableReferences
-    extends
-        BaseReferences<_$AppDatabase, $SwitchEventsTable, SwitchEventsData> {
-  $$SwitchEventsTableReferences(super.$_db, super.$_table, super.$_typedResult);
-
-  static $PartsTable _partIdTable(_$AppDatabase db) => db.parts.createAlias(
-    $_aliasNameGenerator(db.switchEvents.partId, db.parts.id),
-  );
-
-  $$PartsTableProcessedTableManager get partId {
-    final $_column = $_itemColumn<String>('part_id')!;
-
-    final manager = $$PartsTableTableManager(
-      $_db,
-      $_db.parts,
-    ).filter((f) => f.id.sqlEquals($_column));
-    final item = $_typedResult.readTableOrNull(_partIdTable($_db));
-    if (item == null) return manager;
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: [item]),
-    );
-  }
-}
 
 class $$SwitchEventsTableFilterComposer
     extends Composer<_$AppDatabase, $SwitchEventsTable> {
@@ -6323,6 +6267,11 @@ class $$SwitchEventsTableFilterComposer
   });
   ColumnFilters<String> get id => $composableBuilder(
     column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get partId => $composableBuilder(
+    column: $table.partId,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -6346,28 +6295,10 @@ class $$SwitchEventsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  $$PartsTableFilterComposer get partId {
-    final $$PartsTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.partId,
-      referencedTable: $db.parts,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$PartsTableFilterComposer(
-            $db: $db,
-            $table: $db.parts,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
+  ColumnFilters<String> get remotePartName => $composableBuilder(
+    column: $table.remotePartName,
+    builder: (column) => ColumnFilters(column),
+  );
 }
 
 class $$SwitchEventsTableOrderingComposer
@@ -6381,6 +6312,11 @@ class $$SwitchEventsTableOrderingComposer
   });
   ColumnOrderings<String> get id => $composableBuilder(
     column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get partId => $composableBuilder(
+    column: $table.partId,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -6404,28 +6340,10 @@ class $$SwitchEventsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  $$PartsTableOrderingComposer get partId {
-    final $$PartsTableOrderingComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.partId,
-      referencedTable: $db.parts,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$PartsTableOrderingComposer(
-            $db: $db,
-            $table: $db.parts,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
+  ColumnOrderings<String> get remotePartName => $composableBuilder(
+    column: $table.remotePartName,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$SwitchEventsTableAnnotationComposer
@@ -6439,6 +6357,9 @@ class $$SwitchEventsTableAnnotationComposer
   });
   GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get partId =>
+      $composableBuilder(column: $table.partId, builder: (column) => column);
 
   GeneratedColumn<DateTime> get timestamp =>
       $composableBuilder(column: $table.timestamp, builder: (column) => column);
@@ -6454,28 +6375,10 @@ class $$SwitchEventsTableAnnotationComposer
   GeneratedColumn<String> get note =>
       $composableBuilder(column: $table.note, builder: (column) => column);
 
-  $$PartsTableAnnotationComposer get partId {
-    final $$PartsTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.partId,
-      referencedTable: $db.parts,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$PartsTableAnnotationComposer(
-            $db: $db,
-            $table: $db.parts,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
+  GeneratedColumn<String> get remotePartName => $composableBuilder(
+    column: $table.remotePartName,
+    builder: (column) => column,
+  );
 }
 
 class $$SwitchEventsTableTableManager
@@ -6489,9 +6392,12 @@ class $$SwitchEventsTableTableManager
           $$SwitchEventsTableAnnotationComposer,
           $$SwitchEventsTableCreateCompanionBuilder,
           $$SwitchEventsTableUpdateCompanionBuilder,
-          (SwitchEventsData, $$SwitchEventsTableReferences),
+          (
+            SwitchEventsData,
+            BaseReferences<_$AppDatabase, $SwitchEventsTable, SwitchEventsData>,
+          ),
           SwitchEventsData,
-          PrefetchHooks Function({bool partId})
+          PrefetchHooks Function()
         > {
   $$SwitchEventsTableTableManager(_$AppDatabase db, $SwitchEventsTable table)
     : super(
@@ -6512,6 +6418,7 @@ class $$SwitchEventsTableTableManager
                 Value<String> markedBy = const Value.absent(),
                 Value<String?> contextTags = const Value.absent(),
                 Value<String?> note = const Value.absent(),
+                Value<String?> remotePartName = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => SwitchEventsCompanion(
                 id: id,
@@ -6520,6 +6427,7 @@ class $$SwitchEventsTableTableManager
                 markedBy: markedBy,
                 contextTags: contextTags,
                 note: note,
+                remotePartName: remotePartName,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -6530,6 +6438,7 @@ class $$SwitchEventsTableTableManager
                 Value<String> markedBy = const Value.absent(),
                 Value<String?> contextTags = const Value.absent(),
                 Value<String?> note = const Value.absent(),
+                Value<String?> remotePartName = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => SwitchEventsCompanion.insert(
                 id: id,
@@ -6538,57 +6447,13 @@ class $$SwitchEventsTableTableManager
                 markedBy: markedBy,
                 contextTags: contextTags,
                 note: note,
+                remotePartName: remotePartName,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
-              .map(
-                (e) => (
-                  e.readTable(table),
-                  $$SwitchEventsTableReferences(db, table, e),
-                ),
-              )
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
               .toList(),
-          prefetchHooksCallback: ({partId = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [],
-              addJoins:
-                  <
-                    T extends TableManagerState<
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic
-                    >
-                  >(state) {
-                    if (partId) {
-                      state =
-                          state.withJoin(
-                                currentTable: table,
-                                currentColumn: table.partId,
-                                referencedTable: $$SwitchEventsTableReferences
-                                    ._partIdTable(db),
-                                referencedColumn: $$SwitchEventsTableReferences
-                                    ._partIdTable(db)
-                                    .id,
-                              )
-                              as T;
-                    }
-
-                    return state;
-                  },
-              getPrefetchedDataCallback: (items) async {
-                return [];
-              },
-            );
-          },
+          prefetchHooksCallback: null,
         ),
       );
 }
@@ -6603,9 +6468,12 @@ typedef $$SwitchEventsTableProcessedTableManager =
       $$SwitchEventsTableAnnotationComposer,
       $$SwitchEventsTableCreateCompanionBuilder,
       $$SwitchEventsTableUpdateCompanionBuilder,
-      (SwitchEventsData, $$SwitchEventsTableReferences),
+      (
+        SwitchEventsData,
+        BaseReferences<_$AppDatabase, $SwitchEventsTable, SwitchEventsData>,
+      ),
       SwitchEventsData,
-      PrefetchHooks Function({bool partId})
+      PrefetchHooks Function()
     >;
 typedef $$ConsentProfilesTableCreateCompanionBuilder =
     ConsentProfilesCompanion Function({
