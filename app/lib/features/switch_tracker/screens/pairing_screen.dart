@@ -5,6 +5,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import '../../../core/sync/api_client.dart';
+import '../../../core/sync/connection_provider.dart';
 import '../../../core/sync/sync_provider.dart';
 
 const _partnerDeviceIdKey = 'refugium_partner_device_id';
@@ -19,8 +20,10 @@ class PairingScreen extends ConsumerStatefulWidget {
 
 class _PairingScreenState extends ConsumerState<PairingScreen> {
   final _codeController = TextEditingController();
+  final _displayNameController = TextEditingController();
   String? _generatedCode;
   String? _generatedPairingId;
+  String? _generatedRole;
   bool _isLoading = false;
   String? _error;
   String _selectedRole = 'partner';
@@ -29,6 +32,7 @@ class _PairingScreenState extends ConsumerState<PairingScreen> {
   @override
   void dispose() {
     _codeController.dispose();
+    _displayNameController.dispose();
     super.dispose();
   }
 
@@ -43,6 +47,7 @@ class _PairingScreenState extends ConsumerState<PairingScreen> {
       setState(() {
         _generatedCode = result['invite_code'] as String;
         _generatedPairingId = result['pairing_id'] as String;
+        _generatedRole = _selectedRole;
       });
     } catch (e) {
       setState(() => _error = e.toString());
@@ -71,11 +76,25 @@ class _PairingScreenState extends ConsumerState<PairingScreen> {
 
       final initiatorId = result['initiator_device_id'] as String;
       final pairingId = result['pairing_id'] as String;
+      final role = result['role'] as String? ?? 'partner';
 
       await storage.write(key: _partnerDeviceIdKey, value: initiatorId);
       await storage.write(key: _pairingIdKey, value: pairingId);
 
       await client.confirmPairing(pairingId, deviceId);
+
+      // In connections-Tabelle speichern
+      final displayName = _displayNameController.text.trim().isEmpty
+          ? 'Verbundenes Gerät'
+          : _displayNameController.text.trim();
+
+      await addConnection(
+        ref,
+        remoteDeviceId: initiatorId,
+        remoteDisplayName: displayName,
+        role: role,
+        makeActive: true,
+      );
 
       ref.invalidate(syncProvider);
 
@@ -106,6 +125,23 @@ class _PairingScreenState extends ConsumerState<PairingScreen> {
         aOptions: AndroidOptions(encryptedSharedPreferences: true),
       );
       await storage.write(key: _pairingIdKey, value: _generatedPairingId);
+
+      // Wir wissen hier nicht die Remote-Device-ID des Partners
+      // Sie wird beim nächsten Sync-Event bekannt
+      // Für jetzt: placeholder in connections speichern
+      final displayName = _displayNameController.text.trim().isEmpty
+          ? 'Verbundenes Gerät'
+          : _displayNameController.text.trim();
+
+      // Partner-Device-ID kommt vom ersten eingehenden Sync-Event
+      // Vorerst speichern wir einen Placeholder
+      await addConnection(
+        ref,
+        remoteDeviceId: 'pending_${_generatedPairingId!}',
+        remoteDisplayName: displayName,
+        role: _generatedRole ?? 'partner',
+        makeActive: true,
+      );
 
       ref.invalidate(syncProvider);
 
@@ -182,7 +218,18 @@ class _PairingScreenState extends ConsumerState<PairingScreen> {
                 ),
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 16),
+
+            // Display-Name für Verbindung
+            TextField(
+              controller: _displayNameController,
+              decoration: const InputDecoration(
+                labelText: 'Name für diese Verbindung',
+                hintText: 'z.B. Mischka, Dr. Müller',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 16),
 
             if (_error != null) ...[
               Card(
@@ -237,7 +284,6 @@ class _PairingScreenState extends ConsumerState<PairingScreen> {
                   padding: const EdgeInsets.all(16),
                   child: Column(
                     children: [
-                      // QR-Code
                       QrImageView(
                         data: _generatedCode!,
                         version: QrVersions.auto,
@@ -245,7 +291,6 @@ class _PairingScreenState extends ConsumerState<PairingScreen> {
                         backgroundColor: Colors.white,
                       ),
                       const SizedBox(height: 12),
-                      // Textcode
                       Text(
                         _generatedCode!,
                         style: Theme.of(context).textTheme.headlineMedium
@@ -299,7 +344,6 @@ class _PairingScreenState extends ConsumerState<PairingScreen> {
             ),
             const SizedBox(height: 8),
 
-            // QR-Scanner
             if (_showScanner) ...[
               SizedBox(
                 height: 240,
@@ -330,7 +374,6 @@ class _PairingScreenState extends ConsumerState<PairingScreen> {
               const SizedBox(height: 8),
             ],
 
-            // Manuelle Eingabe
             TextField(
               controller: _codeController,
               decoration: const InputDecoration(

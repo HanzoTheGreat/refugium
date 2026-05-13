@@ -1,9 +1,12 @@
+import 'package:drift/drift.dart' as drift;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:uuid/uuid.dart';
 import 'api_client.dart';
+import '../database/database.dart';
+import '../database/database_provider.dart';
 
-const _serverUrl = 'http://65.108.149.162:8080';
+const _serverUrl = 'https://refugium-sync.duckdns.org';
 const _deviceIdKey = 'refugium_device_id';
 const _pairingIdKey = 'refugium_pairing_id';
 const _partnerDeviceIdKey = 'refugium_partner_device_id';
@@ -30,6 +33,11 @@ final syncProvider = FutureProvider<SyncState>((ref) async {
   final pairingId = await storage.read(key: _pairingIdKey);
   final partnerDeviceId = await storage.read(key: _partnerDeviceIdKey);
 
+  // Migration: altes Pairing in connections-Tabelle übernehmen
+  if (partnerDeviceId != null) {
+    await _migrateOldPairing(ref, partnerDeviceId);
+  }
+
   return SyncState(
     deviceId: deviceId,
     pairingId: pairingId,
@@ -37,6 +45,25 @@ final syncProvider = FutureProvider<SyncState>((ref) async {
     isPaired: partnerDeviceId != null,
   );
 });
+
+Future<void> _migrateOldPairing(Ref ref, String partnerDeviceId) async {
+  try {
+    final db = ref.read(databaseProvider);
+    final existing = await db.select(db.connections).get();
+    if (existing.isNotEmpty) return;
+
+    await db
+        .into(db.connections)
+        .insert(
+          ConnectionsCompanion.insert(
+            remoteDeviceId: partnerDeviceId,
+            remoteDisplayName: 'Verbundenes Gerät',
+            role: const drift.Value('partner'),
+            isActive: const drift.Value(true),
+          ),
+        );
+  } catch (_) {}
+}
 
 class SyncState {
   final String deviceId;

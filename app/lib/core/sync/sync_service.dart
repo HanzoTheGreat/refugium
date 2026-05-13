@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'package:drift/drift.dart' as drift;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shelf/shelf.dart';
@@ -7,33 +9,36 @@ import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:shelf_router/shelf_router.dart';
 import 'package:http/http.dart' as http;
 import 'api_client.dart';
-import 'sync_provider.dart';
+import 'connection_provider.dart';
 import 'nsd_client.dart';
 import 'notification_service.dart';
+import '../database/database.dart';
 import '../database/database_provider.dart';
 
 const _localPort = 7890;
-const _serviceType = '_refugium._tcp';
 const _storage = FlutterSecureStorage(
   aOptions: AndroidOptions(encryptedSharedPreferences: true),
 );
 
-/// Singleton SyncService – wird einmal gestartet und läuft im Hintergrund
 class SyncService {
   static final SyncService _instance = SyncService._internal();
   factory SyncService() => _instance;
   SyncService._internal();
 
   HttpServer? _localServer;
+  Timer? _serverPollTimer;
   String? _deviceId;
   String? _partnerDeviceId;
   String? _serverUrl;
   WidgetRef? _ref;
+  bool _started = false;
 
-  // Bekannte lokale Peer-Adressen: deviceId -> IP:Port
   final Map<String, String> _localPeers = {};
 
   Future<void> start(WidgetRef ref, String serverUrl) async {
+    if (_started) return;
+    _started = true;
+
     _ref = ref;
     _serverUrl = serverUrl;
     _deviceId = await _storage.read(key: 'refugium_device_id');
@@ -43,14 +48,17 @@ class SyncService {
 
     await _startLocalServer();
     await _startMdnsDiscovery();
+    _startServerPolling();
   }
 
   Future<void> stop() async {
+    _serverPollTimer?.cancel();
+    _serverPollTimer = null;
     await _localServer?.close(force: true);
     _localServer = null;
+    _started = false;
   }
 
-  /// Nachricht senden – lokal wenn möglich, sonst via Server
   Future<void> sendSyncEvent({
     required String recipientDeviceId,
     required String messageType,
@@ -58,7 +66,6 @@ class SyncService {
   }) async {
     final payloadJson = jsonEncode(payload);
 
-    // Lokal versuchen
     if (_localPeers.containsKey(recipientDeviceId)) {
       final address = _localPeers[recipientDeviceId]!;
       try {
@@ -73,16 +80,12 @@ class SyncService {
               }),
             )
             .timeout(const Duration(seconds: 3));
-        if (response.statusCode == 200) {
-          return; // Lokal erfolgreich
-        }
+        if (response.statusCode == 200) return;
       } catch (_) {
-        // Lokal fehlgeschlagen – Peer aus Liste entfernen, via Server senden
         _localPeers.remove(recipientDeviceId);
       }
     }
 
-    // Server-Fallback
     if (_serverUrl != null && _deviceId != null) {
       try {
         final client = ApiClient(baseUrl: _serverUrl!);
@@ -92,13 +95,64 @@ class SyncService {
           payload: payloadJson,
           messageType: messageType,
         );
-      } catch (e) {
-        // Server auch nicht erreichbar – still fail, kein Crash
-      }
+      } catch (_) {}
     }
   }
 
-  /// Lokalen HTTP-Server starten – empfängt eingehende Sync-Events
+  void _startServerPolling() {
+    _serverPollTimer = Timer.periodic(
+      const Duration(seconds: 15),
+      (_) => _pollServer(),
+    );
+    Future.delayed(const Duration(seconds: 2), _pollServer);
+  }
+
+  Future<void> _pollServer() async {
+    if (_serverUrl == null || _deviceId == null) return;
+
+    try {
+      final client = ApiClient(baseUrl: _serverUrl!);
+      final messages = await client.fetchMessages(_deviceId!);
+
+      for (final message in messages) {
+        final messageType = message['message_type'] as String?;
+        final payload = message['payload'] as String?;
+        final senderDeviceId = message['sender_device_id'] as String?;
+
+        if (messageType == null || payload == null) continue;
+
+        if (senderDeviceId != null) {
+          await _updatePendingConnection(senderDeviceId);
+        }
+
+        await _handleIncomingEvent(messageType, payload, senderDeviceId);
+      }
+    } catch (_) {}
+  }
+
+  Future<void> _updatePendingConnection(String senderDeviceId) async {
+    if (_ref == null) return;
+    try {
+      final db = _ref!.read(databaseProvider);
+      final connections = await db.select(db.connections).get();
+      for (final conn in connections) {
+        if (conn.remoteDeviceId.startsWith('pending_')) {
+          await _storage.write(
+            key: 'refugium_partner_device_id',
+            value: senderDeviceId,
+          );
+          _partnerDeviceId = senderDeviceId;
+          await (db.update(
+            db.connections,
+          )..where((t) => t.id.equals(conn.id))).write(
+            ConnectionsCompanion(remoteDeviceId: drift.Value(senderDeviceId)),
+          );
+          break;
+        }
+      }
+    } catch (_) {}
+  }
+
   Future<void> _startLocalServer() async {
     final router = Router();
 
@@ -110,13 +164,12 @@ class SyncService {
         final messageType = data['message_type'] as String?;
         final payload = data['payload'] as String?;
 
-        // Nur von bekanntem Partner akzeptieren
         if (senderDeviceId == null || senderDeviceId != _partnerDeviceId) {
           return Response.forbidden('Unknown device');
         }
 
         if (messageType != null && payload != null) {
-          await _handleIncomingEvent(messageType, payload);
+          await _handleIncomingEvent(messageType, payload, senderDeviceId);
         }
 
         return Response.ok('ok');
@@ -140,19 +193,12 @@ class SyncService {
         InternetAddress.anyIPv4,
         _localPort,
       );
-    } catch (_) {
-      // Port bereits belegt – kein Problem, wir nutzen Server-Fallback
-    }
+    } catch (_) {}
   }
 
-  /// mDNS Discovery starten
   Future<void> _startMdnsDiscovery() async {
     if (_deviceId == null) return;
-
-    // Eigenes Gerät registrieren
     await NsdClient.registerService(_deviceId!);
-
-    // Partner suchen via Polling alle 30 Sekunden
     if (_partnerDeviceId != null) {
       _pollForPeers();
     }
@@ -163,30 +209,31 @@ class SyncService {
       await Future.delayed(const Duration(seconds: 30));
       final services = await NsdClient.discoverServices();
       for (final service in services) {
-        final name = service['name'] as String?;
         final host = service['host'] as String?;
         final port = service['port'] as int?;
-        if (name != null && host != null && port != null) {
-          final address = '$host:$port';
-          try {
-            final response = await http
-                .get(Uri.parse('http://$address/ping'))
-                .timeout(const Duration(seconds: 2));
-            if (response.statusCode == 200) {
-              final data = jsonDecode(response.body);
-              final deviceId = data['device_id'] as String?;
-              if (deviceId == _partnerDeviceId) {
-                _localPeers[deviceId!] = address;
-              }
+        if (host == null || port == null) continue;
+        final address = '$host:$port';
+        try {
+          final response = await http
+              .get(Uri.parse('http://$address/ping'))
+              .timeout(const Duration(seconds: 2));
+          if (response.statusCode == 200) {
+            final data = jsonDecode(response.body);
+            final deviceId = data['device_id'] as String?;
+            if (deviceId == _partnerDeviceId) {
+              _localPeers[deviceId!] = address;
             }
-          } catch (_) {}
-        }
+          }
+        } catch (_) {}
       }
     }
   }
 
-  /// Eingehende Sync-Events verarbeiten
-  Future<void> _handleIncomingEvent(String messageType, String payload) async {
+  Future<void> _handleIncomingEvent(
+    String messageType,
+    String payload,
+    String? senderDeviceId,
+  ) async {
     final data = jsonDecode(payload) as Map<String, dynamic>;
 
     switch (messageType) {
@@ -194,7 +241,6 @@ class SyncService {
         final partId = data['part_id'] as String?;
         final note = data['note'] as String?;
 
-        // Anteilname aus DB laden wenn möglich
         String partName = 'Unbekannt';
         if (_ref != null && partId != null) {
           try {
@@ -211,6 +257,22 @@ class SyncService {
           partName: partName,
           note: note,
         );
+        break;
+
+      case 'DisconnectEvent':
+        if (_ref != null && senderDeviceId != null) {
+          try {
+            final db = _ref!.read(databaseProvider);
+            await (db.delete(
+              db.connections,
+            )..where((t) => t.remoteDeviceId.equals(senderDeviceId))).go();
+            await _storage.delete(key: 'refugium_partner_device_id');
+            _partnerDeviceId = null;
+            await NotificationService.showSyncNotification(
+              'Verbindung wurde vom anderen Gerät getrennt',
+            );
+          } catch (_) {}
+        }
         break;
 
       case 'PartUpdate':
@@ -236,7 +298,6 @@ class SyncService {
   bool isPeerLocal(String deviceId) => _localPeers.containsKey(deviceId);
 }
 
-/// Provider für den SyncService
 final syncServiceProvider = Provider<SyncService>((ref) {
   return SyncService();
 });

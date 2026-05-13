@@ -1,21 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/database/database.dart';
+import 'core/database/database_provider.dart';
 import 'core/sync/app_mode_provider.dart';
 import 'core/sync/connection_provider.dart';
+import 'core/sync/sync_service.dart' show SyncService, syncServiceProvider;
+import 'core/sync/sync_provider.dart';
+import 'core/sync/notification_service.dart';
 import 'features/parts/screens/parts_screen.dart';
 import 'features/switch_tracker/screens/switch_tracker_screen.dart';
-import 'features/switch_tracker/screens/pairing_screen.dart';
+import 'features/switch_tracker/screens/settings_screen.dart';
 import 'features/emergency_card/screens/emergency_card_screen.dart';
 import 'features/emergency_card/screens/emergency_contacts_screen.dart';
 import 'features/emergency_card/screens/medical_record_screen.dart';
 import 'features/journal/screens/journal_screen.dart';
-import 'core/sync/sync_service.dart';
-import 'core/sync/sync_provider.dart';
-import 'core/sync/notification_service.dart';
-import 'core/database/database_provider.dart';
 
-// In main(), nach db öffnen:
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await NotificationService.init();
@@ -33,11 +32,10 @@ class RefugiumApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // SyncService starten
     final syncService = ref.read(syncServiceProvider);
     final syncState = ref.watch(syncProvider);
     syncState.whenData((state) {
-      syncService.start(ref, 'http://65.108.149.162:8080');
+      syncService.start(ref, 'https://refugium-sync.duckdns.org');
     });
 
     return MaterialApp(
@@ -71,18 +69,14 @@ class _MainShellState extends ConsumerState<MainShell> {
     final connectionsAsync = ref.watch(connectionsProvider);
     final activeConnectionAsync = ref.watch(activeConnectionProvider);
 
-    // Screens je nach Modus
     final screens = _screensForMode(activeMode);
     final destinations = _destinationsForMode(activeMode);
-
-    // Index in Bounds halten wenn Modus wechselt
     final safeIndex = _index < screens.length ? _index : 0;
 
     return Scaffold(
       appBar: AppBar(
         title: _buildTitle(activeConnectionAsync, connectionsAsync, activeMode),
         actions: [
-          // Modus-Wechsel Button
           PopupMenuButton<AppMode>(
             icon: Icon(_modeIcon(activeMode)),
             tooltip: 'Modus wechseln',
@@ -103,9 +97,10 @@ class _MainShellState extends ConsumerState<MainShell> {
                     ),
                     const SizedBox(width: 8),
                     const Text('Betroffene/r'),
-                    if (activeMode == AppMode.patient) const SizedBox(width: 8),
-                    if (activeMode == AppMode.patient)
+                    if (activeMode == AppMode.patient) ...[
+                      const SizedBox(width: 8),
                       const Icon(Icons.check, size: 16),
+                    ],
                   ],
                 ),
               ),
@@ -121,9 +116,10 @@ class _MainShellState extends ConsumerState<MainShell> {
                     ),
                     const SizedBox(width: 8),
                     const Text('Partner/Angehörige/r'),
-                    if (activeMode == AppMode.partner) const SizedBox(width: 8),
-                    if (activeMode == AppMode.partner)
+                    if (activeMode == AppMode.partner) ...[
+                      const SizedBox(width: 8),
                       const Icon(Icons.check, size: 16),
+                    ],
                   ],
                 ),
               ),
@@ -139,22 +135,21 @@ class _MainShellState extends ConsumerState<MainShell> {
                     ),
                     const SizedBox(width: 8),
                     const Text('Therapeut:in'),
-                    if (activeMode == AppMode.therapist)
+                    if (activeMode == AppMode.therapist) ...[
                       const SizedBox(width: 8),
-                    if (activeMode == AppMode.therapist)
                       const Icon(Icons.check, size: 16),
+                    ],
                   ],
                 ),
               ),
             ],
           ),
-          // Pairing Button
           IconButton(
-            icon: const Icon(Icons.link),
-            tooltip: 'Gerät verbinden',
+            icon: const Icon(Icons.settings),
+            tooltip: 'Einstellungen',
             onPressed: () => Navigator.of(
               context,
-            ).push(MaterialPageRoute(builder: (_) => const PairingScreen())),
+            ).push(MaterialPageRoute(builder: (_) => const SettingsScreen())),
           ),
         ],
       ),
@@ -172,19 +167,13 @@ class _MainShellState extends ConsumerState<MainShell> {
     AsyncValue<List<ConnectionData>> connectionsAsync,
     AppMode activeMode,
   ) {
-    // Im Patient-Modus: einfacher Titel
-    if (activeMode == AppMode.patient) {
-      return const Text('Refugium');
-    }
+    if (activeMode == AppMode.patient) return const Text('Refugium');
 
-    // Im Partner/Therapeut-Modus: Verbindungsauswahl
     return connectionsAsync.when(
       loading: () => const Text('Refugium'),
       error: (_, __) => const Text('Refugium'),
       data: (connections) {
-        if (connections.isEmpty) {
-          return const Text('Refugium');
-        }
+        if (connections.isEmpty) return const Text('Refugium');
         final active = activeConnectionAsync.asData?.value;
         return DropdownButton<String>(
           value: active?.id,
@@ -209,9 +198,7 @@ class _MainShellState extends ConsumerState<MainShell> {
             );
           }).toList(),
           onChanged: (id) {
-            if (id != null) {
-              setActiveConnection(ref, id);
-            }
+            if (id != null) setActiveConnection(ref, id);
           },
           hint: const Text('Verbindung wählen'),
         );
