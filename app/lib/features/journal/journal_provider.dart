@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/database/database.dart';
 import '../../../core/database/database_provider.dart';
+import '../../../core/sync/full_sync_service.dart';
 
 final journalEntriesProvider = StreamProvider<List<JournalEntryData>>((ref) {
   final db = ref.watch(databaseProvider);
@@ -24,7 +25,7 @@ Future<void> addJournalEntry(
   String? partId,
   required String content,
   String? mood,
-  bool isPrivate = false,
+  bool isPrivate = true,
 }) async {
   final db = ref.read(databaseProvider);
   await db
@@ -37,6 +38,8 @@ Future<void> addJournalEntry(
           isPrivate: Value(isPrivate),
         ),
       );
+  // Nur synchen wenn explizit öffentlich
+  if (!isPrivate) sendFullSync(ref);
 }
 
 Future<void> updateJournalEntry(
@@ -55,9 +58,16 @@ Future<void> updateJournalEntry(
       updatedAt: Value(DateTime.now()),
     ),
   );
+  // Synchen wenn öffentlich oder wenn auf öffentlich geändert
+  if (isPrivate == false) sendFullSync(ref);
 }
 
 Future<void> deleteJournalEntry(WidgetRef ref, String id) async {
   final db = ref.read(databaseProvider);
+  // Prüfen ob Eintrag öffentlich war
+  final entry = await (db.select(
+    db.journalEntries,
+  )..where((t) => t.id.equals(id))).getSingleOrNull();
   await (db.delete(db.journalEntries)..where((t) => t.id.equals(id))).go();
+  if (entry?.isPrivate == false) sendFullSync(ref);
 }

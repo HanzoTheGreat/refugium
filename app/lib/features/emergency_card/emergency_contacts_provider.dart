@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/database/database.dart';
 import '../../../core/database/database_provider.dart';
+import '../../../core/sync/full_sync_service.dart';
 
 final emergencyContactsProvider = StreamProvider<List<EmergencyContactData>>((
   ref,
@@ -44,6 +45,7 @@ Future<void> addEmergencyContact(
           notes: Value(notes),
         ),
       );
+  sendFullSync(ref);
 }
 
 Future<void> updateEmergencyContact(
@@ -52,9 +54,11 @@ Future<void> updateEmergencyContact(
 ) async {
   final db = ref.read(databaseProvider);
   await db.update(db.emergencyContacts).replace(contact);
+  sendFullSync(ref);
 }
 
 Future<void> deleteEmergencyContact(WidgetRef ref, String id) async {
   final db = ref.read(databaseProvider);
   await (db.delete(db.emergencyContacts)..where((t) => t.id.equals(id))).go();
+  sendFullSync(ref);
 }

@@ -58,7 +58,6 @@ class SwitchEvents extends Table {
       text().withDefault(const Constant('SelfCheckin'))();
   TextColumn get contextTags => text().nullable()();
   TextColumn get note => text().nullable()();
-  // Für eingehende Remote-Events: Name des Anteils vom anderen Gerät
   TextColumn get remotePartName => text().nullable()();
 
   @override
@@ -176,7 +175,7 @@ class JournalEntries extends Table {
   TextColumn get partId => text().references(Parts, #id).nullable()();
   TextColumn get content => text()();
   TextColumn get mood => text().nullable()();
-  BoolColumn get isPrivate => boolean().withDefault(const Constant(false))();
+  BoolColumn get isPrivate => boolean().withDefault(const Constant(true))();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
 
@@ -197,6 +196,8 @@ class Connections extends Table {
   TextColumn get role => text().withDefault(const Constant('partner'))();
   BoolColumn get isActive => boolean().withDefault(const Constant(false))();
   DateTimeColumn get pairedAt => dateTime().withDefault(currentDateAndTime)();
+  // Zuletzt empfangene Remote-Daten als JSON-Blob
+  TextColumn get remoteData => text().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};

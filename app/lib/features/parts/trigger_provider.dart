@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/database/database.dart';
 import '../../../core/database/database_provider.dart';
+import '../../../core/sync/full_sync_service.dart';
 
 final triggerEntriesProvider =
     StreamProvider.family<List<TriggerEntryData>, String>((ref, partId) {
@@ -34,9 +35,16 @@ Future<void> addTrigger(
           appliesExternally: Value(appliesExternally),
         ),
       );
+  // Nur synchen wenn extern sichtbar
+  if (appliesExternally) sendFullSync(ref);
 }
 
 Future<void> deleteTrigger(WidgetRef ref, String id) async {
   final db = ref.read(databaseProvider);
+  // Prüfen ob Trigger extern war vor dem Löschen
+  final trigger = await (db.select(
+    db.triggerEntries,
+  )..where((t) => t.id.equals(id))).getSingleOrNull();
   await (db.delete(db.triggerEntries)..where((t) => t.id.equals(id))).go();
+  if (trigger?.appliesExternally == true) sendFullSync(ref);
 }

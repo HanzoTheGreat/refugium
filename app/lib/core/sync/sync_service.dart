@@ -10,8 +10,10 @@ import 'package:shelf_router/shelf_router.dart';
 import 'package:http/http.dart' as http;
 import 'api_client.dart';
 import 'connection_provider.dart';
+import 'full_sync_service.dart';
 import 'nsd_client.dart';
 import 'notification_service.dart';
+import '../crypto/crypto_service.dart';
 import '../database/database.dart';
 import '../database/database_provider.dart';
 
@@ -64,7 +66,11 @@ class SyncService {
     required String messageType,
     required Map<String, dynamic> payload,
   }) async {
-    final payloadJson = jsonEncode(payload);
+    final plainJson = jsonEncode(payload);
+    final encryptedPayload = await CryptoService.encrypt(
+      plainJson,
+      recipientDeviceId,
+    );
 
     if (_localPeers.containsKey(recipientDeviceId)) {
       final address = _localPeers[recipientDeviceId]!;
@@ -76,7 +82,7 @@ class SyncService {
               body: jsonEncode({
                 'sender_device_id': _deviceId,
                 'message_type': messageType,
-                'payload': payloadJson,
+                'payload': encryptedPayload,
               }),
             )
             .timeout(const Duration(seconds: 3));
@@ -92,11 +98,23 @@ class SyncService {
         await client.sendMessage(
           senderDeviceId: _deviceId!,
           recipientDeviceId: recipientDeviceId,
-          payload: payloadJson,
+          payload: encryptedPayload,
           messageType: messageType,
         );
       } catch (_) {}
     }
+  }
+
+  /// FullSync als verschlüsselte Nachricht senden
+  Future<void> sendFullSyncToRecipient(
+    String recipientDeviceId,
+    Map<String, dynamic> payload,
+  ) async {
+    await sendSyncEvent(
+      recipientDeviceId: recipientDeviceId,
+      messageType: 'FullSync',
+      payload: payload,
+    );
   }
 
   void _startServerPolling() {
@@ -130,6 +148,28 @@ class SyncService {
         await _handleIncomingEvent(messageType, payload, senderDeviceId);
       }
     } catch (_) {}
+
+    // Ausstehende FullSync-Payloads senden
+    if (_ref != null) {
+      final pending = consumePendingSyncs();
+      for (final entry in pending.entries) {
+        final recipientDeviceId = entry.key;
+        final payloadJson = entry.value;
+        try {
+          final encryptedPayload = await CryptoService.encrypt(
+            payloadJson,
+            recipientDeviceId,
+          );
+          final apiClient = ApiClient(baseUrl: _serverUrl!);
+          await apiClient.sendMessage(
+            senderDeviceId: _deviceId!,
+            recipientDeviceId: recipientDeviceId,
+            payload: encryptedPayload,
+            messageType: 'FullSync',
+          );
+        } catch (_) {}
+      }
+    }
   }
 
   Future<void> _updatePendingConnection(String senderDeviceId) async {
@@ -236,11 +276,24 @@ class SyncService {
     String payload,
     String? senderDeviceId,
   ) async {
-    final data = jsonDecode(payload) as Map<String, dynamic>;
+    String decryptedPayload = payload;
+    if (messageType != 'DeviceIntroduction' &&
+        messageType != 'PublicKeyExchange' &&
+        senderDeviceId != null) {
+      try {
+        decryptedPayload = await CryptoService.decrypt(payload, senderDeviceId);
+      } catch (_) {
+        decryptedPayload = payload;
+      }
+    }
+
+    final data = jsonDecode(decryptedPayload) as Map<String, dynamic>;
 
     switch (messageType) {
       case 'DeviceIntroduction':
         final remoteDeviceId = data['device_id'] as String?;
+        final remotePublicKey = data['public_key'] as String?;
+
         if (remoteDeviceId != null) {
           await _storage.write(
             key: 'refugium_partner_device_id',
@@ -249,6 +302,50 @@ class SyncService {
           _partnerDeviceId = remoteDeviceId;
           await _updatePendingConnection(remoteDeviceId);
         }
+
+        if (remoteDeviceId != null && remotePublicKey != null) {
+          try {
+            await CryptoService.deriveAndStoreSharedSecret(
+              remoteDeviceId,
+              remotePublicKey,
+            );
+          } catch (_) {}
+
+          if (_serverUrl != null && _deviceId != null) {
+            try {
+              final ownPublicKey = await CryptoService.getPublicKeyBase64();
+              final client = ApiClient(baseUrl: _serverUrl!);
+              await client.sendMessage(
+                senderDeviceId: _deviceId!,
+                recipientDeviceId: remoteDeviceId,
+                payload: '{"public_key":"$ownPublicKey"}',
+                messageType: 'PublicKeyExchange',
+              );
+            } catch (_) {}
+          }
+
+          // Nach Schlüsseltausch FullSync senden
+          if (_ref != null) {
+            await sendFullSync(_ref!);
+          }
+        }
+        break;
+
+      case 'PublicKeyExchange':
+        final remotePublicKey = data['public_key'] as String?;
+        if (remotePublicKey != null && senderDeviceId != null) {
+          try {
+            await CryptoService.deriveAndStoreSharedSecret(
+              senderDeviceId,
+              remotePublicKey,
+            );
+          } catch (_) {}
+
+          // Nach Schlüsseltausch FullSync senden
+          if (_ref != null) {
+            await sendFullSync(_ref!);
+          }
+        }
         break;
 
       case 'SwitchEvent':
@@ -256,7 +353,6 @@ class SyncService {
         final partName = data['part_name'] as String? ?? 'Unbekannt';
         final note = data['note'] as String?;
 
-        // In lokale DB speichern als PartnerObservation
         if (_ref != null) {
           try {
             final db = _ref!.read(databaseProvider);
@@ -279,6 +375,25 @@ class SyncService {
         );
         break;
 
+      case 'FullSync':
+        // Remote-Daten in der DB speichern
+        if (_ref != null && senderDeviceId != null) {
+          try {
+            final db = _ref!.read(databaseProvider);
+            final connections = await db.select(db.connections).get();
+            final conn = connections
+                .where((c) => c.remoteDeviceId == senderDeviceId)
+                .firstOrNull;
+            if (conn != null) {
+              await storeRemoteData(db, conn.id, data);
+            }
+            await NotificationService.showSyncNotification(
+              'Daten wurden synchronisiert',
+            );
+          } catch (_) {}
+        }
+        break;
+
       case 'DisconnectEvent':
         if (_ref != null && senderDeviceId != null) {
           try {
@@ -287,6 +402,7 @@ class SyncService {
               db.connections,
             )..where((t) => t.remoteDeviceId.equals(senderDeviceId))).go();
             await _storage.delete(key: 'refugium_partner_device_id');
+            await CryptoService.deleteSharedSecret(senderDeviceId);
             _partnerDeviceId = null;
             await NotificationService.showSyncNotification(
               'Verbindung wurde vom anderen Gerät getrennt',
@@ -296,21 +412,13 @@ class SyncService {
         break;
 
       case 'PartUpdate':
-        await NotificationService.showSyncNotification(
-          'Anteil wurde aktualisiert',
-        );
-        break;
-
       case 'ConsentUpdate':
-        await NotificationService.showSyncNotification(
-          'Consent wurde aktualisiert',
-        );
-        break;
-
-      case 'FullSync':
-        await NotificationService.showSyncNotification(
-          'Vollständiger Sync erhalten',
-        );
+        // Bei inkrementellen Updates FullSync anfordern
+        if (_ref != null && senderDeviceId != null) {
+          await NotificationService.showSyncNotification(
+            'Daten wurden aktualisiert',
+          );
+        }
         break;
     }
   }

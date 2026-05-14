@@ -1,11 +1,17 @@
 import 'dart:io';
+import 'package:drift/drift.dart' show Value;
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/backup/backup_service.dart';
 import '../../../core/sync/app_mode_provider.dart';
 import '../../../core/sync/connection_provider.dart';
+import '../../../core/sync/full_sync_service.dart';
 import '../../../core/sync/sync_provider.dart';
+import '../../../core/sync/sync_service.dart'
+    show SyncService, syncServiceProvider;
+import '../../../core/database/database.dart';
+import '../../../core/database/database_provider.dart';
 import 'pairing_screen.dart';
 
 const _serverUrl = 'https://refugium-sync.duckdns.org';
@@ -163,6 +169,16 @@ class SettingsScreen extends ConsumerWidget {
                                   child: const Text('Aktivieren'),
                                 ),
                               IconButton(
+                                icon: const Icon(Icons.edit_outlined, size: 20),
+                                tooltip: 'Umbenennen',
+                                onPressed: () => _renameConnection(
+                                  context,
+                                  ref,
+                                  c.id,
+                                  c.remoteDisplayName,
+                                ),
+                              ),
+                              IconButton(
                                 icon: const Icon(
                                   Icons.link_off,
                                   color: Colors.red,
@@ -192,6 +208,26 @@ class SettingsScreen extends ConsumerWidget {
                         ),
                       ),
                     ),
+                    if (mode == AppMode.patient) ...[
+                      const Divider(height: 1),
+                      ListTile(
+                        leading: const Icon(Icons.sync),
+                        title: const Text('Daten jetzt synchronisieren'),
+                        subtitle: const Text(
+                          'Sendet aktuelle Daten an alle verbundenen Geräte',
+                        ),
+                        onTap: () async {
+                          await sendFullSync(ref);
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Sync wird gesendet...'),
+                              ),
+                            );
+                          }
+                        },
+                      ),
+                    ],
                   ],
                 ),
               );
@@ -238,6 +274,45 @@ class SettingsScreen extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  Future<void> _renameConnection(
+    BuildContext context,
+    WidgetRef ref,
+    String connectionId,
+    String currentName,
+  ) async {
+    final controller = TextEditingController(text: currentName);
+    final newName = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Verbindung umbenennen'),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          decoration: const InputDecoration(
+            labelText: 'Name',
+            border: OutlineInputBorder(),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Abbrechen'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(ctx).pop(controller.text.trim()),
+            child: const Text('Speichern'),
+          ),
+        ],
+      ),
+    );
+
+    if (newName != null && newName.isNotEmpty && newName != currentName) {
+      final db = ref.read(databaseProvider);
+      await (db.update(db.connections)..where((t) => t.id.equals(connectionId)))
+          .write(ConnectionsCompanion(remoteDisplayName: Value(newName)));
+    }
   }
 
   Future<void> _confirmDisconnect(

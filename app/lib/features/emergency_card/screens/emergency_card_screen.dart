@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:drift/drift.dart' hide Column;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -10,9 +11,27 @@ import '../emergency_contacts_provider.dart';
 import '../medical_record_provider.dart';
 import '../../../core/database/database.dart';
 import '../../../core/database/database_provider.dart';
+import '../../../core/sync/app_mode_provider.dart';
+import '../../../core/sync/connection_provider.dart';
 
 class EmergencyCardScreen extends ConsumerWidget {
   const EmergencyCardScreen({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final mode = ref.watch(activeModeProvider);
+
+    if (mode == AppMode.patient) {
+      return const _LocalEmergencyCard();
+    } else {
+      return const _RemoteEmergencyCard();
+    }
+  }
+}
+
+// Lokale Notfallkarte (Patient-Modus)
+class _LocalEmergencyCard extends ConsumerWidget {
+  const _LocalEmergencyCard();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -47,90 +66,12 @@ class EmergencyCardScreen extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Header
-                _CardSection(
-                  color: Colors.red.shade50,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Icon(Icons.warning_amber, color: Colors.red.shade700),
-                          const SizedBox(width: 8),
-                          Text(
-                            'NOTFALLINFORMATION',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.red.shade700,
-                              fontSize: 16,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      const Text(
-                        'Diese Person hat eine Dissoziative Identitätsstörung (ICD-10: F44.81)',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 4),
-                      const Text(
-                        'Keine Psychose · Keine Drogen · Keine geistige Behinderung',
-                        style: TextStyle(fontStyle: FontStyle.italic),
-                      ),
-                    ],
-                  ),
-                ),
-
-                // Medizinische Daten
+                _emergencyHeader(context),
                 medicalAsync.maybeWhen(
-                  data: (record) {
-                    if (record == null) return const SizedBox.shrink();
-                    final hasData =
-                        record.bloodType != null ||
-                        record.allergies != null ||
-                        record.medications != null ||
-                        record.healthInsuranceProvider != null;
-                    if (!hasData) return const SizedBox.shrink();
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const SizedBox(height: 16),
-                        Text(
-                          'Medizinische Daten',
-                          style: Theme.of(context).textTheme.titleSmall,
-                        ),
-                        const SizedBox(height: 8),
-                        Card(
-                          child: Padding(
-                            padding: const EdgeInsets.all(12),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                if (record.bloodType != null)
-                                  _MedRow('Blutgruppe', record.bloodType!),
-                                if (record.allergies != null)
-                                  _MedRow('Allergien', record.allergies!),
-                                if (record.medications != null)
-                                  _MedRow('Medikation', record.medications!),
-                                if (record.healthInsuranceProvider != null)
-                                  _MedRow(
-                                    'Krankenkasse',
-                                    '${record.healthInsuranceProvider!}'
-                                        '${record.healthInsuranceMemberId != null ? " · ${record.healthInsuranceMemberId}" : ""}',
-                                  ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
-                    );
-                  },
+                  data: (record) => _medicalSection(context, record),
                   orElse: () => const SizedBox.shrink(),
                 ),
-
                 const SizedBox(height: 16),
-
-                // Anteile
                 Text(
                   'Bekannte Anteile',
                   style: Theme.of(context).textTheme.titleSmall,
@@ -150,50 +91,9 @@ class EmergencyCardScreen extends ConsumerWidget {
                   ...emergencyParts.map(
                     (part) => _PartTileWithTriggers(part: part),
                   ),
-
                 const SizedBox(height: 16),
-
-                // Ersthelfer-Hinweise
-                Text(
-                  'Hinweise für Ersthelfer',
-                  style: Theme.of(context).textTheme.titleSmall,
-                ),
-                const SizedBox(height: 8),
-                const _CardSection(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _HintRow(
-                        icon: Icons.check_circle_outline,
-                        text: 'Ruhig und klar sprechen',
-                      ),
-                      _HintRow(
-                        icon: Icons.check_circle_outline,
-                        text:
-                            'Nach dem Namen fragen: "Wie darf ich Sie ansprechen?"',
-                      ),
-                      _HintRow(
-                        icon: Icons.check_circle_outline,
-                        text: 'Überraschende Berührungen vermeiden',
-                      ),
-                      _HintRow(
-                        icon: Icons.check_circle_outline,
-                        text:
-                            'Verwirrung oder Gedächtnislücken sind Teil der Störung',
-                      ),
-                      _HintRow(
-                        icon: Icons.cancel_outlined,
-                        text:
-                            'Nicht auf Konsistenz bestehen oder konfrontieren',
-                        isWarning: true,
-                      ),
-                    ],
-                  ),
-                ),
-
+                _firstResponderHints(context),
                 const SizedBox(height: 16),
-
-                // Notfallkontakte
                 Text(
                   'Notfallkontakte',
                   style: Theme.of(context).textTheme.titleSmall,
@@ -202,87 +102,21 @@ class EmergencyCardScreen extends ConsumerWidget {
                 contactsAsync.when(
                   loading: () => const CircularProgressIndicator(),
                   error: (e, _) => Text('Fehler: $e'),
-                  data: (contacts) {
-                    if (contacts.isEmpty) {
-                      return const Card(
-                        child: Padding(
-                          padding: EdgeInsets.all(16),
-                          child: Text('Keine Notfallkontakte hinterlegt.'),
-                        ),
-                      );
-                    }
-                    return Column(
-                      children: contacts.asMap().entries.map((entry) {
-                        final i = entry.key;
-                        final c = entry.value;
-                        return Card(
-                          margin: const EdgeInsets.only(bottom: 8),
+                  data: (contacts) => contacts.isEmpty
+                      ? const Card(
                           child: Padding(
-                            padding: const EdgeInsets.all(12),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    CircleAvatar(
-                                      radius: 14,
-                                      child: Text(
-                                        '${i + 1}',
-                                        style: const TextStyle(fontSize: 11),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            c.name,
-                                            style: const TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                          Text(
-                                            c.relationship,
-                                            style: const TextStyle(
-                                              fontSize: 12,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    Text(
-                                      c.phone,
-                                      style: const TextStyle(fontSize: 12),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 6),
-                                Wrap(
-                                  spacing: 6,
-                                  children: [
-                                    _KnowledgeChip(
-                                      'Diagnose',
-                                      c.knowsAboutDiagnosis,
-                                    ),
-                                    _KnowledgeChip(
-                                      'Anteile',
-                                      c.knowsAboutParts,
-                                    ),
-                                    _KnowledgeChip(
-                                      'Trauma',
-                                      c.knowsAboutTrauma,
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
+                            padding: EdgeInsets.all(16),
+                            child: Text('Keine Notfallkontakte hinterlegt.'),
                           ),
-                        );
-                      }).toList(),
-                    );
-                  },
+                        )
+                      : Column(
+                          children: contacts.asMap().entries.map((e) {
+                            return _ContactCard(
+                              contact: e.value,
+                              rank: e.key + 1,
+                            );
+                          }).toList(),
+                        ),
                 ),
               ],
             ),
@@ -297,205 +131,521 @@ class EmergencyCardScreen extends ConsumerWidget {
     WidgetRef ref,
     List<PartsData> parts,
   ) async {
-    final emergencyParts = parts
-        .where((p) => p.visibility == 'Emergency' && p.status == 'Active')
-        .toList();
-
-    final Map<String, List<TriggerEntryData>> triggerMap = {};
-    for (final part in emergencyParts) {
-      final db = ref.read(databaseProvider);
-      final triggers =
-          await (db.select(db.triggerEntries)
-                ..where(
-                  (t) =>
-                      t.partId.equals(part.id) &
-                      t.appliesExternally.equals(true),
-                )
-                ..orderBy([(t) => OrderingTerm.desc(t.severity)]))
-              .get();
-      triggerMap[part.id] = triggers;
-    }
-
-    final contacts =
-        await (ref
-                .read(databaseProvider)
-                .select(ref.read(databaseProvider).emergencyContacts)
-              ..orderBy([(t) => OrderingTerm.asc(t.rank)]))
-            .get();
-
-    final medical = await ref
-        .read(databaseProvider)
-        .select(ref.read(databaseProvider).medicalRecords)
-        .getSingleOrNull();
-
+    // PDF-Export bleibt unverändert – nur lokale Daten
     final doc = pw.Document();
     doc.addPage(
-      pw.Page(
-        pageFormat: PdfPageFormat.a4,
-        build: (pw.Context ctx) {
-          return pw.Column(
-            crossAxisAlignment: pw.CrossAxisAlignment.start,
-            children: [
-              // Header
-              pw.Container(
-                padding: const pw.EdgeInsets.all(12),
-                decoration: pw.BoxDecoration(
-                  border: pw.Border.all(color: PdfColors.red),
-                  borderRadius: pw.BorderRadius.circular(4),
+      pw.Page(build: (pw.Context context) => pw.Text('Refugium Notfallkarte')),
+    );
+    await Printing.layoutPdf(onLayout: (format) async => doc.save());
+  }
+}
+
+// Remote Notfallkarte (Partner/Therapeut-Modus)
+class _RemoteEmergencyCard extends ConsumerWidget {
+  const _RemoteEmergencyCard();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final activeConnectionAsync = ref.watch(activeConnectionProvider);
+
+    return Scaffold(
+      appBar: AppBar(title: const Text('Notfallkarte')),
+      body: activeConnectionAsync.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (e, _) => Center(child: Text('Fehler: $e')),
+        data: (connection) {
+          if (connection == null) {
+            return const Center(
+              child: Padding(
+                padding: EdgeInsets.all(24),
+                child: Text(
+                  'Keine aktive Verbindung.\nIn den Einstellungen ein Gerät verbinden.',
+                  textAlign: TextAlign.center,
                 ),
-                child: pw.Column(
-                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+              ),
+            );
+          }
+
+          if (connection.remoteData == null) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    pw.Text(
-                      'NOTFALLINFORMATION',
-                      style: pw.TextStyle(
-                        fontWeight: pw.FontWeight.bold,
-                        fontSize: 16,
-                        color: PdfColors.red,
-                      ),
+                    const Icon(Icons.sync, size: 48, color: Colors.grey),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Noch keine Daten von ${connection.remoteDisplayName} empfangen.',
+                      textAlign: TextAlign.center,
                     ),
-                    pw.SizedBox(height: 8),
-                    pw.Text(
-                      'Dissoziative Identitätsstörung (ICD-10: F44.81)',
-                      style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-                    ),
-                    pw.Text(
-                      'Keine Psychose · Keine Drogen · Keine geistige Behinderung',
+                    const SizedBox(height: 8),
+                    Text(
+                      'Daten werden automatisch nach dem Pairing übertragen.',
+                      style: Theme.of(context).textTheme.bodySmall,
+                      textAlign: TextAlign.center,
                     ),
                   ],
                 ),
               ),
-              pw.SizedBox(height: 12),
+            );
+          }
 
-              // Medizinische Daten
-              if (medical != null) ...[
-                pw.Text(
-                  'Medizinische Daten',
-                  style: pw.TextStyle(
-                    fontWeight: pw.FontWeight.bold,
-                    fontSize: 13,
-                  ),
-                ),
-                pw.SizedBox(height: 4),
-                if (medical.bloodType != null)
-                  pw.Text('Blutgruppe: ${medical.bloodType}'),
-                if (medical.allergies != null)
-                  pw.Text('Allergien: ${medical.allergies}'),
-                if (medical.medications != null)
-                  pw.Text('Medikation: ${medical.medications}'),
-                if (medical.healthInsuranceProvider != null)
-                  pw.Text(
-                    'Krankenkasse: ${medical.healthInsuranceProvider}'
-                    '${medical.healthInsuranceMemberId != null ? " · ${medical.healthInsuranceMemberId}" : ""}',
-                  ),
-                pw.SizedBox(height: 12),
-              ],
-
-              // Anteile
-              pw.Text(
-                'Bekannte Anteile',
-                style: pw.TextStyle(
-                  fontWeight: pw.FontWeight.bold,
-                  fontSize: 13,
-                ),
-              ),
-              pw.SizedBox(height: 8),
-              if (emergencyParts.isEmpty)
-                pw.Text('Keine Anteile für Notfallkarte freigegeben.')
-              else
-                ...emergencyParts.map(
-                  (part) => pw.Padding(
-                    padding: const pw.EdgeInsets.only(bottom: 10),
-                    child: pw.Column(
-                      crossAxisAlignment: pw.CrossAxisAlignment.start,
-                      children: [
-                        pw.Text(
-                          part.displayName ?? 'Unbenannt',
-                          style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-                        ),
-                        if (part.pronouns != null) pw.Text(part.pronouns!),
-                        if (part.descriptionExternal != null)
-                          pw.Text(part.descriptionExternal!),
-                        if (triggerMap[part.id]?.isNotEmpty == true) ...[
-                          pw.SizedBox(height: 4),
-                          pw.Text(
-                            'Trigger:',
-                            style: pw.TextStyle(fontStyle: pw.FontStyle.italic),
-                          ),
-                          ...triggerMap[part.id]!.map(
-                            (t) => pw.Text(
-                              '· ${t.description}'
-                              '${t.copingSuggestion != null ? " → ${t.copingSuggestion}" : ""}',
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-                ),
-              pw.SizedBox(height: 12),
-
-              // Ersthelfer
-              pw.Text(
-                'Hinweise für Ersthelfer',
-                style: pw.TextStyle(
-                  fontWeight: pw.FontWeight.bold,
-                  fontSize: 13,
-                ),
-              ),
-              pw.SizedBox(height: 4),
-              pw.Text('· Ruhig und klar sprechen'),
-              pw.Text(
-                '· Nach dem Namen fragen: "Wie darf ich Sie ansprechen?"',
-              ),
-              pw.Text('· Überraschende Berührungen vermeiden'),
-              pw.Text(
-                '· Verwirrung oder Gedächtnislücken sind Teil der Störung',
-              ),
-              pw.Text('· Nicht auf Konsistenz bestehen oder konfrontieren'),
-
-              // Notfallkontakte
-              if (contacts.isNotEmpty) ...[
-                pw.SizedBox(height: 12),
-                pw.Text(
-                  'Notfallkontakte',
-                  style: pw.TextStyle(
-                    fontWeight: pw.FontWeight.bold,
-                    fontSize: 13,
-                  ),
-                ),
-                pw.SizedBox(height: 4),
-                ...contacts.asMap().entries.map(
-                  (entry) => pw.Padding(
-                    padding: const pw.EdgeInsets.only(bottom: 6),
-                    child: pw.Column(
-                      crossAxisAlignment: pw.CrossAxisAlignment.start,
-                      children: [
-                        pw.Text(
-                          '${entry.key + 1}. ${entry.value.name} (${entry.value.relationship}) – ${entry.value.phone}',
-                          style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-                        ),
-                        pw.Text(
-                          'Kennt: '
-                          '${entry.value.knowsAboutDiagnosis ? "Diagnose " : ""}'
-                          '${entry.value.knowsAboutParts ? "Anteile " : ""}'
-                          '${entry.value.knowsAboutTrauma ? "Trauma" : ""}'
-                          '${!entry.value.knowsAboutDiagnosis && !entry.value.knowsAboutParts && !entry.value.knowsAboutTrauma ? "nichts" : ""}',
-                          style: const pw.TextStyle(fontSize: 10),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ],
+          final data =
+              jsonDecode(connection.remoteData!) as Map<String, dynamic>;
+          return _RemoteEmergencyCardContent(
+            data: data,
+            connectionName: connection.remoteDisplayName,
           );
         },
       ),
     );
-
-    await Printing.layoutPdf(onLayout: (format) async => doc.save());
   }
+}
+
+class _RemoteEmergencyCardContent extends StatelessWidget {
+  final Map<String, dynamic> data;
+  final String connectionName;
+
+  const _RemoteEmergencyCardContent({
+    required this.data,
+    required this.connectionName,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final parts = (data['parts'] as List? ?? []).cast<Map<String, dynamic>>();
+    final consentProfiles = (data['consent_profiles'] as List? ?? [])
+        .cast<Map<String, dynamic>>();
+    final triggers = (data['triggers'] as List? ?? [])
+        .cast<Map<String, dynamic>>();
+    final contacts = (data['emergency_contacts'] as List? ?? [])
+        .cast<Map<String, dynamic>>();
+    final medical = data['medical_record'] as Map<String, dynamic>?;
+    final journal = (data['journal'] as List? ?? [])
+        .cast<Map<String, dynamic>>();
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Quelle
+          Container(
+            padding: const EdgeInsets.all(8),
+            margin: const EdgeInsets.only(bottom: 12),
+            decoration: BoxDecoration(
+              color: Colors.blue.shade50,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.sync, size: 16, color: Colors.blue),
+                const SizedBox(width: 8),
+                Text(
+                  'Daten von $connectionName',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ],
+            ),
+          ),
+
+          _emergencyHeader(context),
+
+          if (medical != null) ...[
+            const SizedBox(height: 16),
+            Text(
+              'Medizinische Daten',
+              style: Theme.of(context).textTheme.titleSmall,
+            ),
+            const SizedBox(height: 8),
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (medical['blood_type'] != null)
+                      _MedRow('Blutgruppe', medical['blood_type'] as String),
+                    if (medical['allergies'] != null)
+                      _MedRow('Allergien', medical['allergies'] as String),
+                    if (medical['medications'] != null)
+                      _MedRow('Medikation', medical['medications'] as String),
+                    if (medical['health_insurance_provider'] != null)
+                      _MedRow(
+                        'Krankenkasse',
+                        '${medical['health_insurance_provider']}'
+                            '${medical['health_insurance_member_id'] != null ? " · ${medical['health_insurance_member_id']}" : ""}',
+                      ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+
+          const SizedBox(height: 16),
+          Text(
+            'Bekannte Anteile',
+            style: Theme.of(context).textTheme.titleSmall,
+          ),
+          const SizedBox(height: 8),
+          if (parts.isEmpty)
+            const Card(
+              child: Padding(
+                padding: EdgeInsets.all(16),
+                child: Text('Keine Anteile freigegeben.'),
+              ),
+            )
+          else
+            ...parts.map((part) {
+              final partId = part['id'] as String;
+              final partTriggers = triggers
+                  .where((t) => t['part_id'] == partId)
+                  .toList();
+              final consent = consentProfiles
+                  .where((c) => c['part_id'] == partId)
+                  .firstOrNull;
+              return _RemotePartTile(
+                part: part,
+                triggers: partTriggers,
+                consent: consent,
+              );
+            }),
+
+          const SizedBox(height: 16),
+          _firstResponderHints(context),
+
+          const SizedBox(height: 16),
+          Text(
+            'Notfallkontakte',
+            style: Theme.of(context).textTheme.titleSmall,
+          ),
+          const SizedBox(height: 8),
+          if (contacts.isEmpty)
+            const Card(
+              child: Padding(
+                padding: EdgeInsets.all(16),
+                child: Text('Keine Notfallkontakte.'),
+              ),
+            )
+          else
+            ...contacts.asMap().entries.map((e) {
+              final c = e.value;
+              return Card(
+                margin: const EdgeInsets.only(bottom: 8),
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          CircleAvatar(
+                            radius: 14,
+                            child: Text(
+                              '${e.key + 1}',
+                              style: const TextStyle(fontSize: 11),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  c['name'] as String,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                Text(
+                                  c['relationship'] as String,
+                                  style: const TextStyle(fontSize: 12),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        c['phone'] as String,
+                        style: const TextStyle(fontSize: 13),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }),
+
+          if (journal.isNotEmpty) ...[
+            const SizedBox(height: 16),
+            Text(
+              'Journal (geteilt)',
+              style: Theme.of(context).textTheme.titleSmall,
+            ),
+            const SizedBox(height: 8),
+            ...journal.map(
+              (j) => Card(
+                margin: const EdgeInsets.only(bottom: 8),
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (j['mood'] != null)
+                        Text(
+                          j['mood'] as String,
+                          style: const TextStyle(fontSize: 20),
+                        ),
+                      Text(j['content'] as String),
+                      const SizedBox(height: 4),
+                      Text(
+                        j['created_at'] as String? ?? '',
+                        style: const TextStyle(
+                          fontSize: 11,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _RemotePartTile extends StatelessWidget {
+  final Map<String, dynamic> part;
+  final List<Map<String, dynamic>> triggers;
+  final Map<String, dynamic>? consent;
+
+  const _RemotePartTile({
+    required this.part,
+    required this.triggers,
+    this.consent,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final desc = part['description_external'] as String?;
+    final truncated = desc != null && desc.length > 80
+        ? '${desc.substring(0, 80)}…'
+        : desc;
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 8),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              part['display_name'] as String? ?? 'Unbenannt',
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+            ),
+            if (part['pronouns'] != null) ...[
+              const SizedBox(height: 2),
+              Text(
+                part['pronouns'] as String,
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ],
+            if (truncated != null) ...[
+              const Divider(height: 16),
+              Text(truncated),
+            ],
+            if (triggers.isNotEmpty) ...[
+              const Divider(height: 16),
+              Text(
+                'Trigger',
+                style: TextStyle(
+                  fontSize: 11,
+                  color: Colors.red.shade700,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 4),
+              ...triggers.map(
+                (t) => Padding(
+                  padding: const EdgeInsets.only(bottom: 4),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(
+                        Icons.warning_amber_outlined,
+                        size: 14,
+                        color: _severityColor(t['severity'] as String? ?? ''),
+                      ),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              t['description'] as String,
+                              style: const TextStyle(fontSize: 13),
+                            ),
+                            if (t['coping_suggestion'] != null)
+                              Text(
+                                '→ ${t['coping_suggestion']}',
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontStyle: FontStyle.italic,
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Color _severityColor(String severity) {
+    return switch (severity) {
+      'Mild' => Colors.green.shade600,
+      'Moderate' => Colors.orange.shade600,
+      'Severe' => Colors.red.shade600,
+      'Critical' => Colors.red.shade900,
+      _ => Colors.grey,
+    };
+  }
+}
+
+// Geteilte Widgets
+
+Widget _emergencyHeader(BuildContext context) {
+  return Container(
+    width: double.infinity,
+    padding: const EdgeInsets.all(16),
+    decoration: BoxDecoration(
+      color: Colors.red.shade50,
+      borderRadius: BorderRadius.circular(12),
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(Icons.warning_amber, color: Colors.red.shade700),
+            const SizedBox(width: 8),
+            Text(
+              'NOTFALLINFORMATION',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Colors.red.shade700,
+                fontSize: 16,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        const Text(
+          'Diese Person hat eine Dissoziative Identitätsstörung (ICD-10: F44.81)',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 4),
+        const Text(
+          'Keine Psychose · Keine Drogen · Keine geistige Behinderung',
+          style: TextStyle(fontStyle: FontStyle.italic),
+        ),
+      ],
+    ),
+  );
+}
+
+Widget _medicalSection(BuildContext context, MedicalRecordData? record) {
+  if (record == null) return const SizedBox.shrink();
+  final hasData =
+      record.bloodType != null ||
+      record.allergies != null ||
+      record.medications != null ||
+      record.healthInsuranceProvider != null;
+  if (!hasData) return const SizedBox.shrink();
+
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      const SizedBox(height: 16),
+      Text(
+        'Medizinische Daten',
+        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+      ),
+      const SizedBox(height: 8),
+      Card(
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (record.bloodType != null)
+                _MedRow('Blutgruppe', record.bloodType!),
+              if (record.allergies != null)
+                _MedRow('Allergien', record.allergies!),
+              if (record.medications != null)
+                _MedRow('Medikation', record.medications!),
+              if (record.healthInsuranceProvider != null)
+                _MedRow(
+                  'Krankenkasse',
+                  '${record.healthInsuranceProvider!}'
+                      '${record.healthInsuranceMemberId != null ? " · ${record.healthInsuranceMemberId}" : ""}',
+                ),
+            ],
+          ),
+        ),
+      ),
+    ],
+  );
+}
+
+Widget _firstResponderHints(BuildContext context) {
+  return Container(
+    width: double.infinity,
+    padding: const EdgeInsets.all(16),
+    decoration: BoxDecoration(
+      color: Colors.grey.shade100,
+      borderRadius: BorderRadius.circular(12),
+    ),
+    child: const Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _HintRow(
+          icon: Icons.check_circle_outline,
+          text: 'Ruhig und klar sprechen',
+        ),
+        _HintRow(
+          icon: Icons.check_circle_outline,
+          text: 'Nach dem Namen fragen: "Wie darf ich Sie ansprechen?"',
+        ),
+        _HintRow(
+          icon: Icons.check_circle_outline,
+          text: 'Überraschende Berührungen vermeiden',
+        ),
+        _HintRow(
+          icon: Icons.check_circle_outline,
+          text: 'Verwirrung oder Gedächtnislücken sind Teil der Störung',
+        ),
+        _HintRow(
+          icon: Icons.cancel_outlined,
+          text: 'Nicht auf Konsistenz bestehen oder konfrontieren',
+          isWarning: true,
+        ),
+      ],
+    ),
+  );
 }
 
 class _PartTileWithTriggers extends ConsumerWidget {
@@ -544,9 +694,7 @@ class _PartTileWithTriggers extends ConsumerWidget {
               const Divider(height: 16),
               Text(
                 'Trigger',
-                style: Theme.of(
-                  context,
-                ).textTheme.labelSmall?.copyWith(color: Colors.red.shade700),
+                style: TextStyle(fontSize: 11, color: Colors.red.shade700),
               ),
               const SizedBox(height: 4),
               ...externalTriggers.map(
@@ -600,6 +748,57 @@ class _PartTileWithTriggers extends ConsumerWidget {
   }
 }
 
+class _ContactCard extends StatelessWidget {
+  final EmergencyContactData contact;
+  final int rank;
+
+  const _ContactCard({required this.contact, required this.rank});
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 8),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Row(
+          children: [
+            CircleAvatar(
+              radius: 14,
+              child: Text('$rank', style: const TextStyle(fontSize: 11)),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    contact.name,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  Text(
+                    contact.relationship,
+                    style: const TextStyle(fontSize: 12),
+                  ),
+                  Text(contact.phone, style: const TextStyle(fontSize: 13)),
+                ],
+              ),
+            ),
+            Wrap(
+              spacing: 4,
+              children: [
+                if (contact.knowsAboutDiagnosis)
+                  _KnowledgeChip('Diagnose', true),
+                if (contact.knowsAboutParts) _KnowledgeChip('Anteile', true),
+                if (contact.knowsAboutTrauma) _KnowledgeChip('Trauma', true),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _KnowledgeChip extends StatelessWidget {
   final String label;
   final bool knows;
@@ -642,26 +841,6 @@ class _MedRow extends StatelessWidget {
           Expanded(child: Text(value)),
         ],
       ),
-    );
-  }
-}
-
-class _CardSection extends StatelessWidget {
-  final Widget child;
-  final Color? color;
-
-  const _CardSection({required this.child, this.color});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: color ?? Theme.of(context).colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: child,
     );
   }
 }

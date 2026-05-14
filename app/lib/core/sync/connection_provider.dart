@@ -3,12 +3,13 @@ import 'package:drift/drift.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../database/database.dart';
 import '../database/database_provider.dart';
+import '../crypto/crypto_service.dart';
 
 final connectionsProvider = StreamProvider<List<ConnectionData>>((ref) {
   final db = ref.watch(databaseProvider);
-  return (db.select(db.connections)
-        ..orderBy([(t) => OrderingTerm.desc(t.pairedAt)]))
-      .watch();
+  return (db.select(
+    db.connections,
+  )..orderBy([(t) => OrderingTerm.desc(t.pairedAt)])).watch();
 });
 
 final activeConnectionProvider = StreamProvider<ConnectionData?>((ref) {
@@ -21,10 +22,10 @@ final activeConnectionProvider = StreamProvider<ConnectionData?>((ref) {
 
 Future<void> setActiveConnection(WidgetRef ref, String connectionId) async {
   final db = ref.read(databaseProvider);
-  await (db.update(db.connections))
-      .write(const ConnectionsCompanion(isActive: Value(false)));
-  await (db.update(db.connections)
-        ..where((t) => t.id.equals(connectionId)))
+  await (db.update(
+    db.connections,
+  )).write(const ConnectionsCompanion(isActive: Value(false)));
+  await (db.update(db.connections)..where((t) => t.id.equals(connectionId)))
       .write(const ConnectionsCompanion(isActive: Value(true)));
 }
 
@@ -37,24 +38,33 @@ Future<void> addConnection(
 }) async {
   final db = ref.read(databaseProvider);
   if (makeActive) {
-    await (db.update(db.connections))
-        .write(const ConnectionsCompanion(isActive: Value(false)));
+    await (db.update(
+      db.connections,
+    )).write(const ConnectionsCompanion(isActive: Value(false)));
   }
-  await db.into(db.connections).insert(
-    ConnectionsCompanion.insert(
-      remoteDeviceId: remoteDeviceId,
-      remoteDisplayName: remoteDisplayName,
-      role: Value(role),
-      isActive: Value(makeActive),
-    ),
-  );
+  await db
+      .into(db.connections)
+      .insert(
+        ConnectionsCompanion.insert(
+          remoteDeviceId: remoteDeviceId,
+          remoteDisplayName: remoteDisplayName,
+          role: Value(role),
+          isActive: Value(makeActive),
+        ),
+      );
 }
 
 Future<void> deleteConnection(WidgetRef ref, String connectionId) async {
   final db = ref.read(databaseProvider);
-  await (db.delete(db.connections)
-        ..where((t) => t.id.equals(connectionId)))
-      .go();
+  // Shared Secret löschen bevor Verbindung gelöscht wird
+  final connections = await db.select(db.connections).get();
+  final conn = connections.where((c) => c.id == connectionId).firstOrNull;
+  if (conn != null && !conn.remoteDeviceId.startsWith('pending_')) {
+    await CryptoService.deleteSharedSecret(conn.remoteDeviceId);
+  }
+  await (db.delete(
+    db.connections,
+  )..where((t) => t.id.equals(connectionId))).go();
 }
 
 Future<void> disconnectAndNotify(
@@ -71,10 +81,12 @@ Future<void> disconnectAndNotify(
       final uri = Uri.parse('$serverUrl/api/v1/messages/send');
       final request = await client.postUrl(uri);
       request.headers.set('Content-Type', 'application/json');
-      request.write('{"sender_device_id":"$ownDeviceId",'
-          '"recipient_device_id":"${connection.remoteDeviceId}",'
-          '"payload":"{}",'
-          '"message_type":"DisconnectEvent"}');
+      request.write(
+        '{"sender_device_id":"$ownDeviceId",'
+        '"recipient_device_id":"${connection.remoteDeviceId}",'
+        '"payload":"{}",'
+        '"message_type":"DisconnectEvent"}',
+      );
       await request.close();
       client.close();
     } catch (_) {}

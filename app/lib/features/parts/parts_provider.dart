@@ -1,7 +1,9 @@
 import 'package:drift/drift.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/database/database.dart';
 import '../../../core/database/database_provider.dart';
+import '../../../core/sync/full_sync_service.dart';
 
 final partsProvider = StreamNotifierProvider<PartsNotifier, List<PartsData>>(
   PartsNotifier.new,
@@ -35,11 +37,13 @@ class PartsNotifier extends StreamNotifier<List<PartsData>> {
             descriptionExternal: Value(descriptionExternal),
           ),
         );
+    sendFullSync(ref as WidgetRef);
   }
 
   Future<void> updatePart(PartsData part) async {
     final db = ref.read(databaseProvider);
     await db.update(db.parts).replace(part);
+    sendFullSync(ref as WidgetRef);
   }
 
   Future<void> setPartStatus(String id, String status) async {
@@ -47,5 +51,6 @@ class PartsNotifier extends StreamNotifier<List<PartsData>> {
     await (db.update(db.parts)..where((t) => t.id.equals(id))).write(
       PartsCompanion(status: Value(status)),
     );
+    sendFullSync(ref as WidgetRef);
   }
 }

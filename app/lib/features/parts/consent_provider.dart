@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/database/database.dart';
 import '../../../core/database/database_provider.dart';
+import '../../../core/sync/full_sync_service.dart';
 
 final consentProfileProvider =
     FutureProvider.family<ConsentProfileData?, String>((ref, partId) async {
@@ -18,4 +19,5 @@ Future<void> upsertConsent(
   final db = ref.read(databaseProvider);
   await db.into(db.consentProfiles).insertOnConflictUpdate(companion);
   ref.invalidate(consentProfileProvider(companion.partId.value));
+  sendFullSync(ref);
 }

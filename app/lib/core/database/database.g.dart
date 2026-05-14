@@ -4487,7 +4487,7 @@ class $JournalEntriesTable extends JournalEntries
     defaultConstraints: GeneratedColumn.constraintIsAlways(
       'CHECK ("is_private" IN (0, 1))',
     ),
-    defaultValue: const Constant(false),
+    defaultValue: const Constant(true),
   );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
@@ -4954,6 +4954,17 @@ class $ConnectionsTable extends Connections
     requiredDuringInsert: false,
     defaultValue: currentDateAndTime,
   );
+  static const VerificationMeta _remoteDataMeta = const VerificationMeta(
+    'remoteData',
+  );
+  @override
+  late final GeneratedColumn<String> remoteData = GeneratedColumn<String>(
+    'remote_data',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -4962,6 +4973,7 @@ class $ConnectionsTable extends Connections
     role,
     isActive,
     pairedAt,
+    remoteData,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -5018,6 +5030,12 @@ class $ConnectionsTable extends Connections
         pairedAt.isAcceptableOrUnknown(data['paired_at']!, _pairedAtMeta),
       );
     }
+    if (data.containsKey('remote_data')) {
+      context.handle(
+        _remoteDataMeta,
+        remoteData.isAcceptableOrUnknown(data['remote_data']!, _remoteDataMeta),
+      );
+    }
     return context;
   }
 
@@ -5051,6 +5069,10 @@ class $ConnectionsTable extends Connections
         DriftSqlType.dateTime,
         data['${effectivePrefix}paired_at'],
       )!,
+      remoteData: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}remote_data'],
+      ),
     );
   }
 
@@ -5067,6 +5089,7 @@ class ConnectionData extends DataClass implements Insertable<ConnectionData> {
   final String role;
   final bool isActive;
   final DateTime pairedAt;
+  final String? remoteData;
   const ConnectionData({
     required this.id,
     required this.remoteDeviceId,
@@ -5074,6 +5097,7 @@ class ConnectionData extends DataClass implements Insertable<ConnectionData> {
     required this.role,
     required this.isActive,
     required this.pairedAt,
+    this.remoteData,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -5084,6 +5108,9 @@ class ConnectionData extends DataClass implements Insertable<ConnectionData> {
     map['role'] = Variable<String>(role);
     map['is_active'] = Variable<bool>(isActive);
     map['paired_at'] = Variable<DateTime>(pairedAt);
+    if (!nullToAbsent || remoteData != null) {
+      map['remote_data'] = Variable<String>(remoteData);
+    }
     return map;
   }
 
@@ -5095,6 +5122,9 @@ class ConnectionData extends DataClass implements Insertable<ConnectionData> {
       role: Value(role),
       isActive: Value(isActive),
       pairedAt: Value(pairedAt),
+      remoteData: remoteData == null && nullToAbsent
+          ? const Value.absent()
+          : Value(remoteData),
     );
   }
 
@@ -5110,6 +5140,7 @@ class ConnectionData extends DataClass implements Insertable<ConnectionData> {
       role: serializer.fromJson<String>(json['role']),
       isActive: serializer.fromJson<bool>(json['isActive']),
       pairedAt: serializer.fromJson<DateTime>(json['pairedAt']),
+      remoteData: serializer.fromJson<String?>(json['remoteData']),
     );
   }
   @override
@@ -5122,6 +5153,7 @@ class ConnectionData extends DataClass implements Insertable<ConnectionData> {
       'role': serializer.toJson<String>(role),
       'isActive': serializer.toJson<bool>(isActive),
       'pairedAt': serializer.toJson<DateTime>(pairedAt),
+      'remoteData': serializer.toJson<String?>(remoteData),
     };
   }
 
@@ -5132,6 +5164,7 @@ class ConnectionData extends DataClass implements Insertable<ConnectionData> {
     String? role,
     bool? isActive,
     DateTime? pairedAt,
+    Value<String?> remoteData = const Value.absent(),
   }) => ConnectionData(
     id: id ?? this.id,
     remoteDeviceId: remoteDeviceId ?? this.remoteDeviceId,
@@ -5139,6 +5172,7 @@ class ConnectionData extends DataClass implements Insertable<ConnectionData> {
     role: role ?? this.role,
     isActive: isActive ?? this.isActive,
     pairedAt: pairedAt ?? this.pairedAt,
+    remoteData: remoteData.present ? remoteData.value : this.remoteData,
   );
   ConnectionData copyWithCompanion(ConnectionsCompanion data) {
     return ConnectionData(
@@ -5152,6 +5186,9 @@ class ConnectionData extends DataClass implements Insertable<ConnectionData> {
       role: data.role.present ? data.role.value : this.role,
       isActive: data.isActive.present ? data.isActive.value : this.isActive,
       pairedAt: data.pairedAt.present ? data.pairedAt.value : this.pairedAt,
+      remoteData: data.remoteData.present
+          ? data.remoteData.value
+          : this.remoteData,
     );
   }
 
@@ -5163,7 +5200,8 @@ class ConnectionData extends DataClass implements Insertable<ConnectionData> {
           ..write('remoteDisplayName: $remoteDisplayName, ')
           ..write('role: $role, ')
           ..write('isActive: $isActive, ')
-          ..write('pairedAt: $pairedAt')
+          ..write('pairedAt: $pairedAt, ')
+          ..write('remoteData: $remoteData')
           ..write(')'))
         .toString();
   }
@@ -5176,6 +5214,7 @@ class ConnectionData extends DataClass implements Insertable<ConnectionData> {
     role,
     isActive,
     pairedAt,
+    remoteData,
   );
   @override
   bool operator ==(Object other) =>
@@ -5186,7 +5225,8 @@ class ConnectionData extends DataClass implements Insertable<ConnectionData> {
           other.remoteDisplayName == this.remoteDisplayName &&
           other.role == this.role &&
           other.isActive == this.isActive &&
-          other.pairedAt == this.pairedAt);
+          other.pairedAt == this.pairedAt &&
+          other.remoteData == this.remoteData);
 }
 
 class ConnectionsCompanion extends UpdateCompanion<ConnectionData> {
@@ -5196,6 +5236,7 @@ class ConnectionsCompanion extends UpdateCompanion<ConnectionData> {
   final Value<String> role;
   final Value<bool> isActive;
   final Value<DateTime> pairedAt;
+  final Value<String?> remoteData;
   final Value<int> rowid;
   const ConnectionsCompanion({
     this.id = const Value.absent(),
@@ -5204,6 +5245,7 @@ class ConnectionsCompanion extends UpdateCompanion<ConnectionData> {
     this.role = const Value.absent(),
     this.isActive = const Value.absent(),
     this.pairedAt = const Value.absent(),
+    this.remoteData = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   ConnectionsCompanion.insert({
@@ -5213,6 +5255,7 @@ class ConnectionsCompanion extends UpdateCompanion<ConnectionData> {
     this.role = const Value.absent(),
     this.isActive = const Value.absent(),
     this.pairedAt = const Value.absent(),
+    this.remoteData = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : remoteDeviceId = Value(remoteDeviceId),
        remoteDisplayName = Value(remoteDisplayName);
@@ -5223,6 +5266,7 @@ class ConnectionsCompanion extends UpdateCompanion<ConnectionData> {
     Expression<String>? role,
     Expression<bool>? isActive,
     Expression<DateTime>? pairedAt,
+    Expression<String>? remoteData,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -5232,6 +5276,7 @@ class ConnectionsCompanion extends UpdateCompanion<ConnectionData> {
       if (role != null) 'role': role,
       if (isActive != null) 'is_active': isActive,
       if (pairedAt != null) 'paired_at': pairedAt,
+      if (remoteData != null) 'remote_data': remoteData,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -5243,6 +5288,7 @@ class ConnectionsCompanion extends UpdateCompanion<ConnectionData> {
     Value<String>? role,
     Value<bool>? isActive,
     Value<DateTime>? pairedAt,
+    Value<String?>? remoteData,
     Value<int>? rowid,
   }) {
     return ConnectionsCompanion(
@@ -5252,6 +5298,7 @@ class ConnectionsCompanion extends UpdateCompanion<ConnectionData> {
       role: role ?? this.role,
       isActive: isActive ?? this.isActive,
       pairedAt: pairedAt ?? this.pairedAt,
+      remoteData: remoteData ?? this.remoteData,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -5277,6 +5324,9 @@ class ConnectionsCompanion extends UpdateCompanion<ConnectionData> {
     if (pairedAt.present) {
       map['paired_at'] = Variable<DateTime>(pairedAt.value);
     }
+    if (remoteData.present) {
+      map['remote_data'] = Variable<String>(remoteData.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -5292,6 +5342,7 @@ class ConnectionsCompanion extends UpdateCompanion<ConnectionData> {
           ..write('role: $role, ')
           ..write('isActive: $isActive, ')
           ..write('pairedAt: $pairedAt, ')
+          ..write('remoteData: $remoteData, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -8398,6 +8449,7 @@ typedef $$ConnectionsTableCreateCompanionBuilder =
       Value<String> role,
       Value<bool> isActive,
       Value<DateTime> pairedAt,
+      Value<String?> remoteData,
       Value<int> rowid,
     });
 typedef $$ConnectionsTableUpdateCompanionBuilder =
@@ -8408,6 +8460,7 @@ typedef $$ConnectionsTableUpdateCompanionBuilder =
       Value<String> role,
       Value<bool> isActive,
       Value<DateTime> pairedAt,
+      Value<String?> remoteData,
       Value<int> rowid,
     });
 
@@ -8447,6 +8500,11 @@ class $$ConnectionsTableFilterComposer
 
   ColumnFilters<DateTime> get pairedAt => $composableBuilder(
     column: $table.pairedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get remoteData => $composableBuilder(
+    column: $table.remoteData,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -8489,6 +8547,11 @@ class $$ConnectionsTableOrderingComposer
     column: $table.pairedAt,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<String> get remoteData => $composableBuilder(
+    column: $table.remoteData,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$ConnectionsTableAnnotationComposer
@@ -8521,6 +8584,11 @@ class $$ConnectionsTableAnnotationComposer
 
   GeneratedColumn<DateTime> get pairedAt =>
       $composableBuilder(column: $table.pairedAt, builder: (column) => column);
+
+  GeneratedColumn<String> get remoteData => $composableBuilder(
+    column: $table.remoteData,
+    builder: (column) => column,
+  );
 }
 
 class $$ConnectionsTableTableManager
@@ -8560,6 +8628,7 @@ class $$ConnectionsTableTableManager
                 Value<String> role = const Value.absent(),
                 Value<bool> isActive = const Value.absent(),
                 Value<DateTime> pairedAt = const Value.absent(),
+                Value<String?> remoteData = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ConnectionsCompanion(
                 id: id,
@@ -8568,6 +8637,7 @@ class $$ConnectionsTableTableManager
                 role: role,
                 isActive: isActive,
                 pairedAt: pairedAt,
+                remoteData: remoteData,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -8578,6 +8648,7 @@ class $$ConnectionsTableTableManager
                 Value<String> role = const Value.absent(),
                 Value<bool> isActive = const Value.absent(),
                 Value<DateTime> pairedAt = const Value.absent(),
+                Value<String?> remoteData = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ConnectionsCompanion.insert(
                 id: id,
@@ -8586,6 +8657,7 @@ class $$ConnectionsTableTableManager
                 role: role,
                 isActive: isActive,
                 pairedAt: pairedAt,
+                remoteData: remoteData,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0

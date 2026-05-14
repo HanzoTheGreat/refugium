@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:uuid/uuid.dart';
 import 'api_client.dart';
+import '../crypto/crypto_service.dart';
 import '../database/database.dart';
 import '../database/database_provider.dart';
 
@@ -30,10 +31,12 @@ final syncProvider = FutureProvider<SyncState>((ref) async {
     await storage.write(key: _deviceIdKey, value: deviceId);
   }
 
+  // Keypair beim Start sicherstellen
+  await CryptoService.getOrCreateKeyPair();
+
   final pairingId = await storage.read(key: _pairingIdKey);
   final partnerDeviceId = await storage.read(key: _partnerDeviceIdKey);
 
-  // Migration: altes Pairing in connections-Tabelle übernehmen
   if (partnerDeviceId != null) {
     await _migrateOldPairing(ref, partnerDeviceId);
   }

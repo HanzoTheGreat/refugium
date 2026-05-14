@@ -46,7 +46,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 9;
+  int get schemaVersion => 10;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -61,6 +61,11 @@ class AppDatabase extends _$AppDatabase {
       if (from < 9) {
         await customStatement(
           'ALTER TABLE switch_events ADD COLUMN remote_part_name TEXT;',
+        );
+      }
+      if (from < 10) {
+        await customStatement(
+          'ALTER TABLE connections ADD COLUMN remote_data TEXT;',
         );
       }
     },

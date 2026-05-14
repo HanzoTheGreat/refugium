@@ -28,7 +28,7 @@ class _PatientSwitchTracker extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final currentAsync = ref.watch(switchTrackerProvider);
+    final currentAsync = ref.watch(currentPartProvider);
     final partsAsync = ref.watch(partsProvider);
     final historyAsync = ref.watch(switchHistoryProvider);
 

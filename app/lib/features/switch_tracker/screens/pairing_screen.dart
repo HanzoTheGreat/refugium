@@ -7,6 +7,7 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 import '../../../core/sync/api_client.dart';
 import '../../../core/sync/connection_provider.dart';
 import '../../../core/sync/sync_provider.dart';
+import '../../../core/crypto/crypto_service.dart';
 
 const _partnerDeviceIdKey = 'refugium_partner_device_id';
 const _pairingIdKey = 'refugium_pairing_id';
@@ -95,12 +96,13 @@ class _PairingScreenState extends ConsumerState<PairingScreen> {
         makeActive: true,
       );
 
-      // Initiator über unsere Device-ID informieren
+      // Eigenen Public Key mitsenden damit Initiator Shared Secret ableiten kann
       try {
+        final ownPublicKey = await CryptoService.getPublicKeyBase64();
         await client.sendMessage(
           senderDeviceId: deviceId,
           recipientDeviceId: initiatorId,
-          payload: '{"device_id":"$deviceId"}',
+          payload: '{"device_id":"$deviceId","public_key":"$ownPublicKey"}',
           messageType: 'DeviceIntroduction',
         );
       } catch (_) {}

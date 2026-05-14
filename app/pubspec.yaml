@@ -79,6 +79,9 @@ dev_dependencies:
   # Export
   file_picker: ^8.1.7
 
+  # E2E
+  cryptography: ^2.7.0
+
 flutter:
   uses-material-design: true
   assets:

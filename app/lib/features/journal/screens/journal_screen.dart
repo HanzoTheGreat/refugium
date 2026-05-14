@@ -160,7 +160,7 @@ class _WriteEntrySheetState extends ConsumerState<_WriteEntrySheet> {
   late final TextEditingController _contentController;
   String? _selectedPartId;
   String? _selectedMood;
-  bool _isPrivate = false;
+  bool _isPrivate = true;
   bool _saving = false;
 
   bool get _isEdit => widget.entry != null;

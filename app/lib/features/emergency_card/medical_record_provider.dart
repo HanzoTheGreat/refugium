@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/database/database.dart';
 import '../../../core/database/database_provider.dart';
+import '../../../core/sync/full_sync_service.dart';
 
 final medicalRecordProvider = StreamProvider<MedicalRecordData?>((ref) {
   final db = ref.watch(databaseProvider);
@@ -20,4 +21,5 @@ Future<void> saveMedicalRecord(
       db.medicalRecords,
     )..where((t) => t.id.equals(existing.id))).write(companion);
   }
+  sendFullSync(ref);
 }
