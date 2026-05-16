@@ -1,5 +1,4 @@
 import 'package:drift/drift.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/database/database.dart';
 import '../../../core/database/database_provider.dart';
@@ -37,13 +36,15 @@ class PartsNotifier extends StreamNotifier<List<PartsData>> {
             descriptionExternal: Value(descriptionExternal),
           ),
         );
-    sendFullSync(ref as WidgetRef);
+    // sendFullSyncFromDb statt sendFullSync(ref as WidgetRef):
+    // ref in StreamNotifier ist kein WidgetRef – der Cast wirft zur Laufzeit.
+    await sendFullSyncFromDb(db);
   }
 
   Future<void> updatePart(PartsData part) async {
     final db = ref.read(databaseProvider);
     await db.update(db.parts).replace(part);
-    sendFullSync(ref as WidgetRef);
+    await sendFullSyncFromDb(db);
   }
 
   Future<void> setPartStatus(String id, String status) async {
@@ -51,6 +52,12 @@ class PartsNotifier extends StreamNotifier<List<PartsData>> {
     await (db.update(db.parts)..where((t) => t.id.equals(id))).write(
       PartsCompanion(status: Value(status)),
     );
-    sendFullSync(ref as WidgetRef);
+    await sendFullSyncFromDb(db);
+  }
+
+  Future<void> deletePart(String id) async {
+    final db = ref.read(databaseProvider);
+    await (db.delete(db.parts)..where((t) => t.id.equals(id))).go();
+    await sendFullSyncFromDb(db);
   }
 }

@@ -24,9 +24,12 @@ final syncProvider = FutureProvider<SyncState>((ref) async {
   String? deviceId = await storage.read(key: _deviceIdKey);
 
   if (deviceId == null) {
+    // UUID client-seitig generieren – deviceId ist in diesem Branch per Definition null,
+    // der frühere Cast (deviceId as String) warf immer eine TypeError.
+    final newId = const Uuid().v4();
     final client = ref.read(apiClientProvider);
     final publicKey = const Uuid().v4();
-    final result = await client.registerDevice(publicKey);
+    final result = await client.registerDevice(newId, publicKey);
     deviceId = result['device_id'] as String;
     await storage.write(key: _deviceIdKey, value: deviceId);
   }

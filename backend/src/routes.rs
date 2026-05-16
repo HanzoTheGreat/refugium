@@ -1,14 +1,21 @@
 use axum::{
     extract::{Path, State},
     http::StatusCode,
-    response::Json,
+    response::{
+        sse::{Event, KeepAlive, Sse},
+        Json,
+    },
     routing::{get, post},
     Router,
 };
+use futures_util::stream::Stream;
 use sqlx::SqlitePool;
+use std::convert::Infallible;
+use tokio::sync::broadcast;
+use tokio_stream::{wrappers::BroadcastStream, StreamExt as _};
 use crate::{models::*, crypto::*, push::send_notification};
 
-pub fn router(pool: SqlitePool, ntfy_url: String) -> Router {
+pub fn router(pool: SqlitePool, ntfy_url: String, sse_tx: broadcast::Sender<String>) -> Router {
     Router::new()
         .route("/devices/register", post(register_device))
         .route("/pairs/invite", post(create_invite))
@@ -17,24 +24,30 @@ pub fn router(pool: SqlitePool, ntfy_url: String) -> Router {
         .route("/messages/send", post(send_message))
         .route("/messages/{device_id}", get(fetch_messages))
         .route("/push/register", post(register_push))
-        .with_state(AppState { pool, ntfy_url })
+        .route("/sse/{device_id}", get(sse_stream))
+        .with_state(AppState { pool, ntfy_url, sse_tx })
 }
 
 #[derive(Clone)]
 pub struct AppState {
     pub pool: SqlitePool,
     pub ntfy_url: String,
+    pub sse_tx: broadcast::Sender<String>,
 }
 
 async fn register_device(
     State(state): State<AppState>,
     Json(req): Json<RegisterDeviceRequest>,
 ) -> Result<Json<RegisterDeviceResponse>, (StatusCode, Json<ApiError>)> {
-    let id = generate_id();
+    let id = req.device_id.unwrap_or_else(generate_id);
     let now = chrono::Utc::now();
 
     sqlx::query(
-        "INSERT INTO devices (id, public_key, created_at, last_seen) VALUES (?, ?, ?, ?)"
+        "INSERT INTO devices (id, public_key, created_at, last_seen)
+         VALUES (?, ?, ?, ?)
+         ON CONFLICT(id) DO UPDATE SET
+           public_key = excluded.public_key,
+           last_seen  = excluded.last_seen"
     )
     .bind(&id)
     .bind(&req.public_key)
@@ -113,10 +126,12 @@ async fn confirm_pairing(
     let now = chrono::Utc::now();
 
     sqlx::query(
-        "UPDATE pairings SET status = 'confirmed', confirmed_at = ? WHERE id = ? AND initiator_device_id = ?"
+        "UPDATE pairings SET status = 'confirmed', confirmed_at = ?
+         WHERE id = ? AND (initiator_device_id = ? OR peer_device_id = ?)"
     )
     .bind(now)
     .bind(&req.pairing_id)
+    .bind(&req.device_id)
     .bind(&req.device_id)
     .execute(&state.pool)
     .await
@@ -146,7 +161,9 @@ async fn send_message(
     .await
     .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiError::new(e.to_string()))))?;
 
-    // Push-Benachrichtigung senden
+    // SSE-Ping an Empfänger – ignorieren wenn niemand subscribed (send() gibt Err wenn 0 Receiver)
+    let _ = state.sse_tx.send(req.recipient_device_id.clone());
+
     if req.message_type == "SwitchEvent" {
         let sub = sqlx::query_as::<_, PushSubscription>(
             "SELECT * FROM push_subscriptions WHERE device_id = ?"
@@ -173,15 +190,24 @@ async fn fetch_messages(
     State(state): State<AppState>,
     Path(device_id): Path<String>,
 ) -> Result<Json<Vec<Message>>, (StatusCode, Json<ApiError>)> {
+    sqlx::query(
+        "DELETE FROM messages WHERE created_at < datetime('now', '-7 days')"
+    )
+    .execute(&state.pool)
+    .await
+    .ok();
+
     let messages = sqlx::query_as::<_, Message>(
-        "SELECT * FROM messages WHERE recipient_device_id = ? AND delivered_at IS NULL ORDER BY created_at ASC"
+        "SELECT * FROM messages
+         WHERE recipient_device_id = ? AND delivered_at IS NULL
+         ORDER BY created_at ASC
+         LIMIT 50"
     )
     .bind(&device_id)
     .fetch_all(&state.pool)
     .await
     .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiError::new(e.to_string()))))?;
 
-    // Als delivered markieren
     sqlx::query(
         "UPDATE messages SET delivered_at = ? WHERE recipient_device_id = ? AND delivered_at IS NULL"
     )
@@ -212,4 +238,23 @@ async fn register_push(
     .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(ApiError::new(e.to_string()))))?;
 
     Ok(Json(serde_json::json!({ "status": "ok" })))
+}
+
+// SSE-Endpoint: Gerät subscribed auf seine device_id.
+// Server sendet "ping" Event sobald eine neue Nachricht für dieses Gerät eingeht.
+async fn sse_stream(
+    State(state): State<AppState>,
+    Path(device_id): Path<String>,
+) -> Sse<impl Stream<Item = Result<Event, Infallible>>> {
+    let rx = state.sse_tx.subscribe();
+    let stream = BroadcastStream::new(rx).filter_map(move |msg| {
+        let target = device_id.clone();
+        match msg {
+            Ok(id) if id == target => {
+                Some(Ok(Event::default().event("ping").data("new_message")))
+            }
+            _ => None,
+        }
+    });
+    Sse::new(stream).keep_alive(KeepAlive::default())
 }

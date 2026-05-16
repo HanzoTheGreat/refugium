@@ -43,6 +43,7 @@ pub struct PushSubscription {
 // Request/Response DTOs
 #[derive(Debug, Deserialize)]
 pub struct RegisterDeviceRequest {
+    pub device_id: Option<String>,   // Client schickt seine UUID mit
     pub public_key: String,
 }
 

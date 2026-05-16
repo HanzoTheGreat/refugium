@@ -6,11 +6,15 @@ class ApiClient {
 
   ApiClient({required this.baseUrl});
 
-  Future<Map<String, dynamic>> registerDevice(String publicKey) async {
+  // ÄNDERUNG: deviceId wird mitgeschickt → Server kann ON CONFLICT idempotent reagieren.
+  Future<Map<String, dynamic>> registerDevice(
+    String deviceId,
+    String publicKey,
+  ) async {
     final response = await http.post(
       Uri.parse('$baseUrl/api/v1/devices/register'),
       headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'public_key': publicKey}),
+      body: jsonEncode({'device_id': deviceId, 'public_key': publicKey}),
     );
     if (response.statusCode != 200) {
       throw Exception('Registrierung fehlgeschlagen: ${response.body}');

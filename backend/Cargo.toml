@@ -40,3 +40,7 @@ dotenvy = "0.15"
 
 # Kommunikation
 reqwest = { version = "0.12", features = ["json"] }
+
+# Parallelität
+tokio-stream = "0.1"
+futures-util = "0.3"

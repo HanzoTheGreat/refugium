@@ -2,6 +2,7 @@ use axum::routing::get;
 use axum::Router;
 use axum_server::tls_rustls::RustlsConfig;
 use std::path::PathBuf;
+use tokio::sync::broadcast;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 mod routes;
@@ -29,9 +30,13 @@ async fn main() {
 
     let pool = db::init_pool(&database_url).await.expect("DB init fehlgeschlagen");
 
+    // Broadcast-Channel für SSE: sendet recipient_device_id wenn neue Nachricht eingeht.
+    // Capacity 256 – bei Overflow werden alte Pings gedroppt, kein Problem (Ping ist idempotent).
+    let (sse_tx, _) = broadcast::channel::<String>(256);
+
     tracing::info!("Refugium Server startet...");
 
-    let api_routes = routes::router(pool, ntfy_url);
+    let api_routes = routes::router(pool, ntfy_url, sse_tx);
 
     let app = Router::new()
         .route("/health", get(health))

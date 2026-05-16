@@ -125,6 +125,10 @@ class SettingsScreen extends ConsumerWidget {
             error: (e, _) => Text('Fehler: $e'),
             data: (connections) {
               final active = activeConnectionAsync.asData?.value;
+              final activeRemoteDeviceId = active?.remoteDeviceId;
+              final activeDisplayName =
+                  active?.remoteDisplayName ?? 'Verbundenes System';
+
               return Card(
                 child: Column(
                   children: [
@@ -208,6 +212,8 @@ class SettingsScreen extends ConsumerWidget {
                         ),
                       ),
                     ),
+
+                    // Patient: Daten jetzt senden
                     if (mode == AppMode.patient) ...[
                       const Divider(height: 1),
                       ListTile(
@@ -226,6 +232,16 @@ class SettingsScreen extends ConsumerWidget {
                             );
                           }
                         },
+                      ),
+                    ],
+
+                    // Angehörige/Therapeut: Daten beim Patienten anfordern
+                    if (mode != AppMode.patient &&
+                        activeRemoteDeviceId != null) ...[
+                      const Divider(height: 1),
+                      _RequestSyncTile(
+                        remoteDeviceId: activeRemoteDeviceId,
+                        displayName: activeDisplayName,
                       ),
                     ],
                   ],
@@ -356,5 +372,68 @@ class SettingsScreen extends ConsumerWidget {
         await deleteConnection(ref, connectionId);
       }
     }
+  }
+}
+
+/// Eigenes StatefulWidget damit der Ladezustand lokal bleibt
+/// und nicht den gesamten Settings-Screen neu baut.
+class _RequestSyncTile extends ConsumerStatefulWidget {
+  final String remoteDeviceId;
+  final String displayName;
+
+  const _RequestSyncTile({
+    required this.remoteDeviceId,
+    required this.displayName,
+  });
+
+  @override
+  ConsumerState<_RequestSyncTile> createState() => _RequestSyncTileState();
+}
+
+class _RequestSyncTileState extends ConsumerState<_RequestSyncTile> {
+  bool _requesting = false;
+
+  Future<void> _request() async {
+    setState(() => _requesting = true);
+    try {
+      await SyncService().sendSyncEvent(
+        recipientDeviceId: widget.remoteDeviceId,
+        messageType: 'SyncRequest',
+        payload: {},
+      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Anfrage gesendet – Daten kommen gleich.'),
+            duration: Duration(seconds: 3),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Fehler: $e')));
+      }
+    } finally {
+      if (mounted) setState(() => _requesting = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      leading: _requesting
+          ? const SizedBox(
+              width: 24,
+              height: 24,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+          : const Icon(Icons.sync),
+      title: const Text('Daten anfordern'),
+      subtitle: Text('Aktuellen Datensatz von ${widget.displayName} holen'),
+      enabled: !_requesting,
+      onTap: _requesting ? null : _request,
+    );
   }
 }

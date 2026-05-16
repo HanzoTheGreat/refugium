@@ -18,6 +18,7 @@ Map<String, dynamic> buildFullSyncPayload({
   required List<EmergencyContactData> contacts,
   required MedicalRecordData? medical,
   required List<JournalEntryData> journal,
+  required List<SwitchEventsData> switchEvents,
 }) {
   final allowedVisibility = switch (recipientRole) {
     'partner' => ['Emergency', 'Partner'],
@@ -44,6 +45,10 @@ Map<String, dynamic> buildFullSyncPayload({
   final visibleJournal = recipientRole == 'therapist'
       ? journal.where((j) => !j.isPrivate).toList()
       : <JournalEntryData>[];
+
+  // Alle SelfCheckin-Events; Namen aus der vollen Partsliste damit auch
+  // Anteile auftauchen, die nicht in der sichtbaren Menge sind.
+  final partNameById = {for (final p in parts) p.id: p.displayName};
 
   return {
     'version': 1,
@@ -130,6 +135,17 @@ Map<String, dynamic> buildFullSyncPayload({
           },
         )
         .toList(),
+    'switch_events': switchEvents
+        .map(
+          (e) => {
+            'id': e.id,
+            'part_id': e.partId,
+            'part_name': partNameById[e.partId] ?? e.partId,
+            'timestamp': e.timestamp.toIso8601String(),
+            'note': e.note,
+          },
+        )
+        .toList(),
   };
 }
 
@@ -154,6 +170,14 @@ Future<void> sendFullSyncFromDb(AppDatabase db) async {
   final medical = await db.select(db.medicalRecords).getSingleOrNull();
   final journal = await db.select(db.journalEntries).get();
 
+  // Nur eigene SelfCheckin-Events, neueste zuerst, max 100
+  final List<SwitchEventsData> switchEvents =
+      await (db.select(db.switchEvents)
+            ..where((t) => t.markedBy.equals('SelfCheckin'))
+            ..orderBy([(t) => OrderingTerm.desc(t.timestamp)])
+            ..limit(100))
+          .get();
+
   for (final conn in validConnections) {
     final payload = buildFullSyncPayload(
       recipientRole: conn.role,
@@ -163,6 +187,7 @@ Future<void> sendFullSyncFromDb(AppDatabase db) async {
       contacts: contacts,
       medical: medical,
       journal: journal,
+      switchEvents: switchEvents,
     );
     _pendingSyncs[conn.remoteDeviceId] = jsonEncode(payload);
   }

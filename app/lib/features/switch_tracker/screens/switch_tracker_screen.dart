@@ -5,6 +5,7 @@ import '../../parts/consent_provider.dart';
 import '../switch_tracker_provider.dart';
 import '../../../core/sync/app_mode_provider.dart';
 import '../../../core/sync/connection_provider.dart';
+import '../../../core/sync/sync_service.dart';
 
 class SwitchTrackerScreen extends ConsumerWidget {
   const SwitchTrackerScreen({super.key});
@@ -185,22 +186,57 @@ class _PatientSwitchTracker extends ConsumerWidget {
   }
 }
 
-// Partner/Therapeut-Modus: Remote-Daten, nur lesen
-class _PartnerSwitchTracker extends ConsumerWidget {
+// Partner/Therapeut-Modus: Remote-Daten, nur lesen + Sync anfordern
+class _PartnerSwitchTracker extends ConsumerStatefulWidget {
   const _PartnerSwitchTracker();
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_PartnerSwitchTracker> createState() =>
+      _PartnerSwitchTrackerState();
+}
+
+class _PartnerSwitchTrackerState extends ConsumerState<_PartnerSwitchTracker> {
+  bool _requesting = false;
+
+  Future<void> _requestSync(String remoteDeviceId) async {
+    setState(() => _requesting = true);
+    try {
+      await SyncService().sendSyncEvent(
+        recipientDeviceId: remoteDeviceId,
+        messageType: 'SyncRequest',
+        payload: {},
+      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Anfrage gesendet – Daten kommen gleich.'),
+            duration: Duration(seconds: 3),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Fehler: $e')));
+      }
+    } finally {
+      if (mounted) setState(() => _requesting = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final currentAsync = ref.watch(remoteCurrentPartProvider);
     final historyAsync = ref.watch(remoteSwitchHistoryProvider);
     final connectionsAsync = ref.watch(connectionsProvider);
 
+    final activeConnection = connectionsAsync.asData?.value
+        .where((c) => c.isActive)
+        .firstOrNull;
     final connectionName =
-        connectionsAsync.asData?.value
-            .where((c) => c.isActive)
-            .firstOrNull
-            ?.remoteDisplayName ??
-        'Verbundenes System';
+        activeConnection?.remoteDisplayName ?? 'Verbundenes System';
+    final remoteDeviceId = activeConnection?.remoteDeviceId;
 
     return Scaffold(
       appBar: AppBar(title: Text('Wer ist vorne? · $connectionName')),
@@ -253,10 +289,36 @@ class _PartnerSwitchTracker extends ConsumerWidget {
             ),
           ),
 
+          // Sync-Button
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+              child: FilledButton.tonal(
+                onPressed: remoteDeviceId == null || _requesting
+                    ? null
+                    : () => _requestSync(remoteDeviceId),
+                child: _requesting
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.sync, size: 18),
+                          const SizedBox(width: 8),
+                          Text('Daten von $connectionName anfordern'),
+                        ],
+                      ),
+              ),
+            ),
+          ),
+
           // Info-Banner
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
               child: Row(
                 children: [
                   Icon(
@@ -267,7 +329,7 @@ class _PartnerSwitchTracker extends ConsumerWidget {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'Du siehst Echtzeit-Updates wenn $connectionName eincheckt.',
+                      'Echtzeit-Updates kommen automatisch beim Einchecken.',
                       style: Theme.of(context).textTheme.bodySmall,
                     ),
                   ),
@@ -276,18 +338,17 @@ class _PartnerSwitchTracker extends ConsumerWidget {
             ),
           ),
 
-          const SliverToBoxAdapter(child: Divider(height: 1)),
+          const SliverToBoxAdapter(child: Divider(height: 24)),
 
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
               child: Text(
                 'Letzte Wechsel',
                 style: Theme.of(context).textTheme.titleSmall,
               ),
             ),
           ),
-          const SliverToBoxAdapter(child: SizedBox(height: 8)),
 
           historyAsync.when(
             loading: () => const SliverToBoxAdapter(

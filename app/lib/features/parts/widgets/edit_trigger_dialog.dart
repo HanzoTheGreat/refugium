@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/database/database.dart';
 import '../../../core/database/database_provider.dart';
+import '../../../core/sync/full_sync_service.dart';
 
 class EditTriggerDialog extends ConsumerStatefulWidget {
   final TriggerEntryData trigger;
@@ -59,6 +60,14 @@ class _EditTriggerDialogState extends ConsumerState<EditTriggerDialog> {
         appliesExternally: Value(_appliesExternally),
       ),
     );
+
+    // Sync auslösen wenn appliesExternally geändert wurde (beeinflusst Notfallkarte)
+    // oder wenn der Trigger bereits extern sichtbar ist (Inhalt hat sich geändert).
+    if (_appliesExternally ||
+        _appliesExternally != widget.trigger.appliesExternally) {
+      sendFullSync(ref);
+    }
+
     if (mounted) Navigator.of(context).pop();
   }
 
