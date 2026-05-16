@@ -131,7 +131,6 @@ class _LocalEmergencyCard extends ConsumerWidget {
     WidgetRef ref,
     List<PartsData> parts,
   ) async {
-    // PDF-Export bleibt unverändert – nur lokale Daten
     final doc = pw.Document();
     doc.addPage(
       pw.Page(build: (pw.Context context) => pw.Text('Refugium Notfallkarte')),
@@ -146,21 +145,45 @@ class _RemoteEmergencyCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final activeConnectionAsync = ref.watch(activeConnectionProvider);
+    final mode = ref.watch(activeModeProvider);
+    final connectionsAsync = ref.watch(connectionsProvider);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Notfallkarte')),
-      body: activeConnectionAsync.when(
+      body: connectionsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('Fehler: $e')),
-        data: (connection) {
+        data: (connections) {
+          // Verbindung die zum aktuellen Modus passt
+          final expectedRole = mode == AppMode.therapist
+              ? 'therapist'
+              : 'partner';
+          final connection = connections
+              .where((c) => c.isActive && c.role == expectedRole)
+              .firstOrNull;
+
           if (connection == null) {
-            return const Center(
+            return Center(
               child: Padding(
-                padding: EdgeInsets.all(24),
-                child: Text(
-                  'Keine aktive Verbindung.\nIn den Einstellungen ein Gerät verbinden.',
-                  textAlign: TextAlign.center,
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.link_off, size: 48, color: Colors.grey),
+                    const SizedBox(height: 16),
+                    Text(
+                      mode == AppMode.therapist
+                          ? 'Keine aktive Therapeut:in-Verbindung.'
+                          : 'Keine aktive Partner-Verbindung.',
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'In den Einstellungen ein Gerät verbinden und aktivieren.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: Colors.grey),
+                    ),
+                  ],
                 ),
               ),
             );
@@ -230,7 +253,6 @@ class _RemoteEmergencyCardContent extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Quelle
           Container(
             padding: const EdgeInsets.all(8),
             margin: const EdgeInsets.only(bottom: 12),
@@ -580,9 +602,9 @@ Widget _medicalSection(BuildContext context, MedicalRecordData? record) {
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
       const SizedBox(height: 16),
-      Text(
+      const Text(
         'Medizinische Daten',
-        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
       ),
       const SizedBox(height: 8),
       Card(

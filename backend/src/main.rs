@@ -38,9 +38,9 @@ async fn main() {
         .nest("/api/v1", api_routes);
 
     let cert_path = std::env::var("TLS_CERT")
-        .unwrap_or_else(|_| "/etc/letsencrypt/live/refugium-sync.dedyn.io/fullchain.pem".into());
+        .unwrap_or_else(|_| "/etc/letsencrypt/live/refugium-sync.duckdns.org/fullchain.pem".into());
     let key_path = std::env::var("TLS_KEY")
-        .unwrap_or_else(|_| "/etc/letsencrypt/live/refugium-sync.dedyn.io/privkey.pem".into());
+        .unwrap_or_else(|_| "/etc/letsencrypt/live/refugium-sync.duckdns.org/privkey.pem".into());
 
     let tls_config = RustlsConfig::from_pem_file(
         PathBuf::from(cert_path),

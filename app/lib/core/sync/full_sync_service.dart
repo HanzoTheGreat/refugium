@@ -19,7 +19,6 @@ Map<String, dynamic> buildFullSyncPayload({
   required MedicalRecordData? medical,
   required List<JournalEntryData> journal,
 }) {
-  // Sichtbare Visibility-Level je Rolle
   final allowedVisibility = switch (recipientRole) {
     'partner' => ['Emergency', 'Partner'],
     'therapist' => ['Emergency', 'Partner', 'Therapist'],
@@ -34,17 +33,14 @@ Map<String, dynamic> buildFullSyncPayload({
 
   final visiblePartIds = visibleParts.map((p) => p.id).toSet();
 
-  // Nur externe Trigger der sichtbaren Anteile
   final visibleTriggers = triggers
       .where((t) => visiblePartIds.contains(t.partId) && t.appliesExternally)
       .toList();
 
-  // Consent-Profile der sichtbaren Anteile
   final visibleConsent = consentProfiles
       .where((c) => visiblePartIds.contains(c.partId))
       .toList();
 
-  // Journal: nur nicht-private Einträge, nur für Therapeuten
   final visibleJournal = recipientRole == 'therapist'
       ? journal.where((j) => !j.isPrivate).toList()
       : <JournalEntryData>[];
@@ -60,7 +56,6 @@ Map<String, dynamic> buildFullSyncPayload({
             'pronouns': p.pronouns,
             'apparent_age': p.apparentAge,
             'role': p.role,
-            // Niemals: descriptionInternal, emergenceContext
             'description_external': p.descriptionExternal,
             'visibility': p.visibility,
             'status': p.status,
@@ -138,20 +133,18 @@ Map<String, dynamic> buildFullSyncPayload({
   };
 }
 
-/// Sendet FullSync an alle aktiven Verbindungen
-Future<void> sendFullSync(WidgetRef ref) async {
-  final db = ref.read(databaseProvider);
+/// Lädt alle Daten aus der DB und queued FullSync-Payloads
+/// Für Aufruf aus SyncService (kein WidgetRef nötig)
+Future<void> sendFullSyncFromDb(AppDatabase db) async {
   final deviceId = await _storage.read(key: 'refugium_device_id');
   if (deviceId == null) return;
 
   final connections = await db.select(db.connections).get();
-  final activeConnections = connections.where(
-    (c) => !c.remoteDeviceId.startsWith('pending_'),
-  );
+  final validConnections = connections
+      .where((c) => !c.remoteDeviceId.startsWith('pending_'))
+      .toList();
+  if (validConnections.isEmpty) return;
 
-  if (!activeConnections.iterator.moveNext()) return;
-
-  // Alle Daten laden
   final parts = await db.select(db.parts).get();
   final consentProfiles = await db.select(db.consentProfiles).get();
   final triggers = await db.select(db.triggerEntries).get();
@@ -161,9 +154,7 @@ Future<void> sendFullSync(WidgetRef ref) async {
   final medical = await db.select(db.medicalRecords).getSingleOrNull();
   final journal = await db.select(db.journalEntries).get();
 
-  for (final conn in connections) {
-    if (conn.remoteDeviceId.startsWith('pending_')) continue;
-
+  for (final conn in validConnections) {
     final payload = buildFullSyncPayload(
       recipientRole: conn.role,
       parts: parts,
@@ -173,24 +164,25 @@ Future<void> sendFullSync(WidgetRef ref) async {
       medical: medical,
       journal: journal,
     );
-
-    // Payload über SyncService senden (wird dort verschlüsselt)
-    // Wir speichern den Callback um zirkuläre Imports zu vermeiden
     _pendingSyncs[conn.remoteDeviceId] = jsonEncode(payload);
   }
 }
 
-// Temporärer Speicher für ausstehende FullSync-Payloads
+/// Für Aufruf aus Providern (mit WidgetRef)
+Future<void> sendFullSync(WidgetRef ref) async {
+  final db = ref.read(databaseProvider);
+  await sendFullSyncFromDb(db);
+}
+
+// Ausstehende FullSync-Payloads
 final Map<String, String> _pendingSyncs = {};
 
-/// Ausstehende FullSync-Payloads abrufen und leeren
 Map<String, String> consumePendingSyncs() {
   final result = Map<String, String>.from(_pendingSyncs);
   _pendingSyncs.clear();
   return result;
 }
 
-/// Empfangene FullSync-Daten in der DB speichern
 Future<void> storeRemoteData(
   AppDatabase db,
   String connectionId,
@@ -201,7 +193,6 @@ Future<void> storeRemoteData(
       .write(ConnectionsCompanion(remoteData: Value(json)));
 }
 
-/// Remote-Daten einer Verbindung laden
 Future<Map<String, dynamic>?> loadRemoteData(
   AppDatabase db,
   String connectionId,

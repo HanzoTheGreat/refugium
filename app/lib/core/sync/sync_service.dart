@@ -9,7 +9,6 @@ import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:shelf_router/shelf_router.dart';
 import 'package:http/http.dart' as http;
 import 'api_client.dart';
-import 'connection_provider.dart';
 import 'full_sync_service.dart';
 import 'nsd_client.dart';
 import 'notification_service.dart';
@@ -32,7 +31,8 @@ class SyncService {
   String? _deviceId;
   String? _partnerDeviceId;
   String? _serverUrl;
-  WidgetRef? _ref;
+  // AppDatabase statt WidgetRef – ist sicher long-term zu halten
+  AppDatabase? _db;
   bool _started = false;
 
   final Map<String, String> _localPeers = {};
@@ -41,8 +41,9 @@ class SyncService {
     if (_started) return;
     _started = true;
 
-    _ref = ref;
     _serverUrl = serverUrl;
+    // DB einmalig aus ref lesen und speichern
+    _db = ref.read(databaseProvider);
     _deviceId = await _storage.read(key: 'refugium_device_id');
     _partnerDeviceId = await _storage.read(key: 'refugium_partner_device_id');
 
@@ -72,6 +73,7 @@ class SyncService {
       recipientDeviceId,
     );
 
+    // Lokal versuchen
     if (_localPeers.containsKey(recipientDeviceId)) {
       final address = _localPeers[recipientDeviceId]!;
       try {
@@ -92,6 +94,7 @@ class SyncService {
       }
     }
 
+    // Server-Fallback
     if (_serverUrl != null && _deviceId != null) {
       try {
         final client = ApiClient(baseUrl: _serverUrl!);
@@ -101,20 +104,11 @@ class SyncService {
           payload: encryptedPayload,
           messageType: messageType,
         );
-      } catch (_) {}
+      } catch (e) {
+        // ignore: avoid_print
+        print('[SyncService] sendMessage error: $e');
+      }
     }
-  }
-
-  /// FullSync als verschlüsselte Nachricht senden
-  Future<void> sendFullSyncToRecipient(
-    String recipientDeviceId,
-    Map<String, dynamic> payload,
-  ) async {
-    await sendSyncEvent(
-      recipientDeviceId: recipientDeviceId,
-      messageType: 'FullSync',
-      payload: payload,
-    );
   }
 
   void _startServerPolling() {
@@ -128,6 +122,7 @@ class SyncService {
   Future<void> _pollServer() async {
     if (_serverUrl == null || _deviceId == null) return;
 
+    // Partner-ID bei jedem Poll aktualisieren
     _partnerDeviceId = await _storage.read(key: 'refugium_partner_device_id');
 
     try {
@@ -147,10 +142,13 @@ class SyncService {
 
         await _handleIncomingEvent(messageType, payload, senderDeviceId);
       }
-    } catch (_) {}
+    } catch (e) {
+      // ignore: avoid_print
+      print('[SyncService] pollServer error: $e');
+    }
 
     // Ausstehende FullSync-Payloads senden
-    if (_ref != null) {
+    if (_db != null) {
       final pending = consumePendingSyncs();
       for (final entry in pending.entries) {
         final recipientDeviceId = entry.key;
@@ -167,15 +165,18 @@ class SyncService {
             payload: encryptedPayload,
             messageType: 'FullSync',
           );
-        } catch (_) {}
+        } catch (e) {
+          // ignore: avoid_print
+          print('[SyncService] FullSync send error: $e');
+        }
       }
     }
   }
 
   Future<void> _updatePendingConnection(String senderDeviceId) async {
-    if (_ref == null) return;
+    if (_db == null) return;
     try {
-      final db = _ref!.read(databaseProvider);
+      final db = _db!;
       final connections = await db.select(db.connections).get();
       for (final conn in connections) {
         if (conn.remoteDeviceId.startsWith('pending_')) {
@@ -192,7 +193,9 @@ class SyncService {
           break;
         }
       }
-    } catch (_) {}
+    } catch (e) {
+      print('[SyncService] _updatePendingConnection error: $e');
+    }
   }
 
   Future<void> _startLocalServer() async {
@@ -235,7 +238,9 @@ class SyncService {
         InternetAddress.anyIPv4,
         _localPort,
       );
-    } catch (_) {}
+    } catch (e) {
+      print('[SyncService] local server error: $e');
+    }
   }
 
   Future<void> _startMdnsDiscovery() async {
@@ -276,18 +281,26 @@ class SyncService {
     String payload,
     String? senderDeviceId,
   ) async {
+    // DeviceIntroduction und PublicKeyExchange sind unverschlüsselt
     String decryptedPayload = payload;
     if (messageType != 'DeviceIntroduction' &&
         messageType != 'PublicKeyExchange' &&
         senderDeviceId != null) {
       try {
         decryptedPayload = await CryptoService.decrypt(payload, senderDeviceId);
-      } catch (_) {
+      } catch (e) {
+        print('[SyncService] decrypt error: $e – trying plaintext');
         decryptedPayload = payload;
       }
     }
 
-    final data = jsonDecode(decryptedPayload) as Map<String, dynamic>;
+    final Map<String, dynamic> data;
+    try {
+      data = jsonDecode(decryptedPayload) as Map<String, dynamic>;
+    } catch (e) {
+      print('[SyncService] JSON parse error: $e');
+      return;
+    }
 
     switch (messageType) {
       case 'DeviceIntroduction':
@@ -309,8 +322,11 @@ class SyncService {
               remoteDeviceId,
               remotePublicKey,
             );
-          } catch (_) {}
+          } catch (e) {
+            print('[SyncService] deriveSharedSecret error: $e');
+          }
 
+          // Eigenen Public Key zurückschicken
           if (_serverUrl != null && _deviceId != null) {
             try {
               final ownPublicKey = await CryptoService.getPublicKeyBase64();
@@ -321,12 +337,14 @@ class SyncService {
                 payload: '{"public_key":"$ownPublicKey"}',
                 messageType: 'PublicKeyExchange',
               );
-            } catch (_) {}
+            } catch (e) {
+              print('[SyncService] PublicKeyExchange send error: $e');
+            }
           }
 
-          // Nach Schlüsseltausch FullSync senden
-          if (_ref != null) {
-            await sendFullSync(_ref!);
+          // FullSync senden
+          if (_db != null) {
+            await sendFullSyncFromDb(_db!);
           }
         }
         break;
@@ -339,11 +357,12 @@ class SyncService {
               senderDeviceId,
               remotePublicKey,
             );
-          } catch (_) {}
-
-          // Nach Schlüsseltausch FullSync senden
-          if (_ref != null) {
-            await sendFullSync(_ref!);
+          } catch (e) {
+            print('[SyncService] deriveSharedSecret error: $e');
+          }
+          // FullSync senden
+          if (_db != null) {
+            await sendFullSyncFromDb(_db!);
           }
         }
         break;
@@ -353,20 +372,24 @@ class SyncService {
         final partName = data['part_name'] as String? ?? 'Unbekannt';
         final note = data['note'] as String?;
 
-        if (_ref != null) {
+        if (_db != null) {
           try {
-            final db = _ref!.read(databaseProvider);
+            final db = _db!;
             await db
                 .into(db.switchEvents)
                 .insert(
                   SwitchEventsCompanion.insert(
                     partId: partId,
+                    // Expliziter Timestamp statt currentDateAndTime
+                    timestamp: drift.Value(DateTime.now()),
                     markedBy: const drift.Value('PartnerObservation'),
                     note: drift.Value(note),
                     remotePartName: drift.Value(partName),
                   ),
                 );
-          } catch (_) {}
+          } catch (e) {
+            print('[SyncService] SwitchEvent insert error: $e');
+          }
         }
 
         await NotificationService.showSwitchNotification(
@@ -376,28 +399,30 @@ class SyncService {
         break;
 
       case 'FullSync':
-        // Remote-Daten in der DB speichern
-        if (_ref != null && senderDeviceId != null) {
+        if (_db != null && senderDeviceId != null) {
           try {
-            final db = _ref!.read(databaseProvider);
+            final db = _db!;
             final connections = await db.select(db.connections).get();
             final conn = connections
                 .where((c) => c.remoteDeviceId == senderDeviceId)
                 .firstOrNull;
             if (conn != null) {
               await storeRemoteData(db, conn.id, data);
+            } else {
+              print(
+                '[SyncService] FullSync: no connection found for $senderDeviceId',
+              );
             }
-            await NotificationService.showSyncNotification(
-              'Daten wurden synchronisiert',
-            );
-          } catch (_) {}
+          } catch (e) {
+            print('[SyncService] FullSync store error: $e');
+          }
         }
         break;
 
       case 'DisconnectEvent':
-        if (_ref != null && senderDeviceId != null) {
+        if (_db != null && senderDeviceId != null) {
           try {
-            final db = _ref!.read(databaseProvider);
+            final db = _db!;
             await (db.delete(
               db.connections,
             )..where((t) => t.remoteDeviceId.equals(senderDeviceId))).go();
@@ -407,18 +432,17 @@ class SyncService {
             await NotificationService.showSyncNotification(
               'Verbindung wurde vom anderen Gerät getrennt',
             );
-          } catch (_) {}
+          } catch (e) {
+            print('[SyncService] DisconnectEvent error: $e');
+          }
         }
         break;
 
       case 'PartUpdate':
       case 'ConsentUpdate':
-        // Bei inkrementellen Updates FullSync anfordern
-        if (_ref != null && senderDeviceId != null) {
-          await NotificationService.showSyncNotification(
-            'Daten wurden aktualisiert',
-          );
-        }
+        await NotificationService.showSyncNotification(
+          'Daten wurden aktualisiert',
+        );
         break;
     }
   }
