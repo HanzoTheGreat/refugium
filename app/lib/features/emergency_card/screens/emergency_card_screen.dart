@@ -1069,43 +1069,53 @@ class _ContactCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 8),
       child: Padding(
         padding: const EdgeInsets.all(12),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            CircleAvatar(
-              radius: 14,
-              child: Text('$rank', style: const TextStyle(fontSize: 11)),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    contact.name,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  Text(
-                    contact.relationship,
-                    style: Theme.of(context).textTheme.bodySmall,
-                  ),
-                  Text(
-                    contact.phone,
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  ),
-                ],
-              ),
-            ),
-            Wrap(
-              spacing: 4,
+            Row(
               children: [
-                if (contact.knowsAboutDiagnosis)
-                  _KnowledgeChip('Diagnose', true),
-                if (contact.knowsAboutParts) _KnowledgeChip('Anteile', true),
-                if (contact.knowsAboutTrauma) _KnowledgeChip('Trauma', true),
+                CircleAvatar(
+                  radius: 14,
+                  child: Text('$rank', style: const TextStyle(fontSize: 11)),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        contact.name,
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.w600),
+                      ),
+                      Text(
+                        contact.relationship,
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                      Text(
+                        contact.phone,
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ),
+            if (contact.knowsAboutDiagnosis ||
+                contact.knowsAboutParts ||
+                contact.knowsAboutTrauma) ...[
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 4,
+                runSpacing: 4,
+                children: [
+                  if (contact.knowsAboutDiagnosis)
+                    _KnowledgeChip('Diagnose', true),
+                  if (contact.knowsAboutParts) _KnowledgeChip('Anteile', true),
+                  if (contact.knowsAboutTrauma) _KnowledgeChip('Trauma', true),
+                ],
+              ),
+            ],
           ],
         ),
       ),

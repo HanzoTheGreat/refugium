@@ -132,12 +132,12 @@ class _ContactCard extends ConsumerWidget {
                       context: context,
                       builder: (_) => AddEditContactDialog(contact: contact),
                     ),
-                    color: Colors.grey,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
                   IconButton(
                     icon: const Icon(Icons.delete_outline, size: 20),
                     onPressed: () => deleteEmergencyContact(ref, contact.id),
-                    color: Colors.grey,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
                 ],
               ],
@@ -145,7 +145,11 @@ class _ContactCard extends ConsumerWidget {
             const SizedBox(height: 8),
             Row(
               children: [
-                const Icon(Icons.phone, size: 14, color: Colors.grey),
+                Icon(
+                  Icons.phone,
+                  size: 14,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
                 const SizedBox(width: 4),
                 Text(
                   contact.phone,
@@ -168,7 +172,11 @@ class _ContactCard extends ConsumerWidget {
               const SizedBox(height: 4),
               Row(
                 children: [
-                  const Icon(Icons.access_time, size: 14, color: Colors.grey),
+                  Icon(
+                    Icons.access_time,
+                    size: 14,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
                   const SizedBox(width: 4),
                   Text(
                     contact.availableHours!,
@@ -218,9 +226,13 @@ class _KnowledgeChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Chip(
-      label: Text(label, style: const TextStyle(fontSize: 10)),
-      backgroundColor: Colors.green.shade50,
+      label: Text(
+        label,
+        style: TextStyle(fontSize: 10, color: cs.onPrimaryContainer),
+      ),
+      backgroundColor: cs.primaryContainer,
       padding: EdgeInsets.zero,
       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
     );
