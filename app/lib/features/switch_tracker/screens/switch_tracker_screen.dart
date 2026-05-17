@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../parts/parts_provider.dart';
 import '../../parts/consent_provider.dart';
+import '../../parts/trigger_provider.dart';
 import '../switch_tracker_provider.dart';
 import '../../../core/sync/app_mode_provider.dart';
 import '../../../core/sync/connection_provider.dart';
@@ -87,6 +88,8 @@ class _PatientSwitchTracker extends ConsumerWidget {
                       ),
                       if (currentPart != null)
                         _ConsentSummary(partId: currentPart.id),
+                      if (currentPart != null)
+                        _TriggerSummary(partId: currentPart.id),
                     ],
                   );
                 },
@@ -315,6 +318,30 @@ class _PartnerSwitchTrackerState extends ConsumerState<_PartnerSwitchTracker> {
             ),
           ),
 
+          // Remote Trigger des aktuell vorne-seienden Anteils
+          SliverToBoxAdapter(
+            child: currentAsync.when(
+              loading: () => const SizedBox.shrink(),
+              error: (_, __) => const SizedBox.shrink(),
+              data: (current) {
+                if (current == null) return const SizedBox.shrink();
+                final remoteData = activeConnection?.remoteData;
+                if (remoteData == null) return const SizedBox.shrink();
+                try {
+                  final data = jsonDecode(remoteData) as Map<String, dynamic>;
+                  final triggers = (data['triggers'] as List? ?? [])
+                      .cast<Map<String, dynamic>>()
+                      .where((t) => t['part_id'] == current.partId)
+                      .toList();
+                  if (triggers.isEmpty) return const SizedBox.shrink();
+                  return _RemoteTriggerSummary(triggers: triggers);
+                } catch (_) {
+                  return const SizedBox.shrink();
+                }
+              },
+            ),
+          ),
+
           // Sync-Button
           SliverToBoxAdapter(
             child: Padding(
@@ -494,7 +521,10 @@ class _ConsentChip extends StatelessWidget {
 
     return Chip(
       avatar: Icon(icon, size: 16, color: iconColor),
-      label: Text(label, style: const TextStyle(fontSize: 12)),
+      label: Text(
+        label,
+        style: const TextStyle(fontSize: 12, color: Colors.black87),
+      ),
       backgroundColor: color,
       padding: EdgeInsets.zero,
       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -542,6 +572,120 @@ class _RemoteConsentSummary extends StatelessWidget {
               style: Theme.of(context).textTheme.bodySmall,
             ),
           ],
+        ],
+      ),
+    );
+  }
+}
+
+/// Trigger des aktuell vorne-seienden Anteils – Patientenansicht (lokal aus DB)
+class _TriggerSummary extends ConsumerWidget {
+  final String partId;
+  const _TriggerSummary({required this.partId});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final cs = Theme.of(context).colorScheme;
+    final triggersAsync = ref.watch(triggerEntriesProvider(partId));
+
+    return triggersAsync.when(
+      loading: () => const SizedBox.shrink(),
+      error: (_, __) => const SizedBox.shrink(),
+      data: (triggers) {
+        if (triggers.isEmpty) return const SizedBox.shrink();
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Trigger', style: Theme.of(context).textTheme.titleSmall),
+              const SizedBox(height: 8),
+              ...triggers.map(
+                (t) => _TriggerRow(
+                  description: t.description,
+                  severity: t.severity,
+                  copingSuggestion: t.copingSuggestion,
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+/// Trigger des aktuell vorne-seienden Anteils – Partneransicht (aus remoteData)
+class _RemoteTriggerSummary extends StatelessWidget {
+  final List<Map<String, dynamic>> triggers;
+  const _RemoteTriggerSummary({required this.triggers});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Trigger', style: Theme.of(context).textTheme.titleSmall),
+          const SizedBox(height: 8),
+          ...triggers.map(
+            (t) => _TriggerRow(
+              description: t['description'] as String? ?? '',
+              severity: t['severity'] as String? ?? '',
+              copingSuggestion: t['coping_suggestion'] as String?,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TriggerRow extends StatelessWidget {
+  final String description;
+  final String severity;
+  final String? copingSuggestion;
+
+  const _TriggerRow({
+    required this.description,
+    required this.severity,
+    this.copingSuggestion,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final severityColor = switch (severity) {
+      'Mild' => cs.primary,
+      'Moderate' => Colors.orange.shade600,
+      'Severe' => cs.error,
+      'Critical' => cs.error,
+      _ => cs.onSurfaceVariant,
+    };
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.warning_amber_outlined, size: 16, color: severityColor),
+          const SizedBox(width: 6),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(description, style: Theme.of(context).textTheme.bodySmall),
+                if (copingSuggestion != null)
+                  Text(
+                    '→ $copingSuggestion',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+              ],
+            ),
+          ),
         ],
       ),
     );

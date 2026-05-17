@@ -70,7 +70,10 @@ class _TriggerCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final (color, label) = switch (trigger.severity) {
+    final cs = Theme.of(context).colorScheme;
+
+    // Helle semantische Hintergründe – Text immer Colors.black87 für Kontrast
+    final (bgColor, severityLabel) = switch (trigger.severity) {
       'Mild' => (Colors.green.shade50, 'Mild'),
       'Moderate' => (Colors.orange.shade50, 'Moderat'),
       'Severe' => (Colors.red.shade50, 'Schwer'),
@@ -78,9 +81,12 @@ class _TriggerCard extends StatelessWidget {
       _ => (Colors.grey.shade50, trigger.severity),
     };
 
+    // Explizite dunkle Textfarbe für alle Inhalte auf farbigem Hintergrund
+    const onCard = Colors.black87;
+
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
-      color: color,
+      color: bgColor,
       child: Padding(
         padding: const EdgeInsets.all(12),
         child: Column(
@@ -91,29 +97,35 @@ class _TriggerCard extends StatelessWidget {
                 Expanded(
                   child: Text(
                     trigger.description,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    style: const TextStyle(
                       fontWeight: FontWeight.bold,
+                      color: onCard,
+                      fontSize: 14,
                     ),
                   ),
                 ),
                 Chip(
-                  label: Text(label, style: const TextStyle(fontSize: 11)),
+                  backgroundColor: Colors.white.withOpacity(0.45),
+                  label: Text(
+                    severityLabel,
+                    style: const TextStyle(fontSize: 11, color: onCard),
+                  ),
                   padding: EdgeInsets.zero,
                   materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
                 if (canEdit) ...[
                   IconButton(
-                    icon: const Icon(Icons.delete_outline, size: 20),
-                    onPressed: onDelete,
-                    color: Colors.grey,
-                  ),
-                  IconButton(
                     icon: const Icon(Icons.edit_outlined, size: 20),
+                    color: Colors.black54,
                     onPressed: () => showDialog(
                       context: context,
                       builder: (_) => EditTriggerDialog(trigger: trigger),
                     ),
-                    color: Colors.grey,
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.delete_outline, size: 20),
+                    color: Colors.black54,
+                    onPressed: onDelete,
                   ),
                 ],
               ],
@@ -132,7 +144,7 @@ class _TriggerCard extends StatelessWidget {
                   Expanded(
                     child: Text(
                       trigger.copingSuggestion!,
-                      style: Theme.of(context).textTheme.bodySmall,
+                      style: const TextStyle(fontSize: 13, color: onCard),
                     ),
                   ),
                 ],
@@ -140,13 +152,17 @@ class _TriggerCard extends StatelessWidget {
             ],
             if (trigger.appliesExternally) ...[
               const SizedBox(height: 4),
-              const Row(
+              Row(
                 children: [
-                  Icon(Icons.emergency, size: 14, color: Colors.red),
-                  SizedBox(width: 4),
+                  Icon(Icons.emergency, size: 14, color: cs.error),
+                  const SizedBox(width: 4),
                   Text(
                     'Auf Notfallkarte sichtbar',
-                    style: TextStyle(fontSize: 11, color: Colors.red),
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: cs.error,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ],
               ),

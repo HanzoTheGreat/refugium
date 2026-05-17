@@ -714,9 +714,6 @@ class _RemotePartTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final desc = part['description_external'] as String?;
-    final truncated = desc != null && desc.length > 80
-        ? '${desc.substring(0, 80)}…'
-        : desc;
 
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
@@ -738,9 +735,9 @@ class _RemotePartTile extends StatelessWidget {
                 style: Theme.of(context).textTheme.bodySmall,
               ),
             ],
-            if (truncated != null) ...[
+            if (desc != null) ...[
               const Divider(height: 16),
-              Text(truncated, style: Theme.of(context).textTheme.bodyMedium),
+              Text(desc, style: Theme.of(context).textTheme.bodyMedium),
             ],
             if (triggers.isNotEmpty) ...[
               const Divider(height: 16),
@@ -969,11 +966,6 @@ class _PartTileWithTriggers extends ConsumerWidget {
       orElse: () => <TriggerEntryData>[],
     );
 
-    final desc = part.descriptionExternal;
-    final truncated = desc != null && desc.length > 80
-        ? '${desc.substring(0, 80)}…'
-        : desc;
-
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       child: Padding(
@@ -994,11 +986,14 @@ class _PartTileWithTriggers extends ConsumerWidget {
                 style: Theme.of(context).textTheme.bodySmall,
               ),
             ],
-            if (truncated != null) ...[
+            if (part.descriptionExternal != null) ...[
               const Divider(height: 16),
-              Text(truncated, style: Theme.of(context).textTheme.bodyMedium),
+              Text(
+                part.descriptionExternal!,
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
             ],
-            if (externalTriggers.isNotEmpty) ...[
+            ...[
               const Divider(height: 16),
               Text(
                 'Trigger',
@@ -1131,12 +1126,16 @@ class _KnowledgeChip extends StatelessWidget {
       avatar: Icon(
         knows ? Icons.check_circle : Icons.cancel,
         size: 14,
-        color: knows ? cs.primary : cs.error,
+        color: knows ? cs.onPrimaryContainer : cs.onErrorContainer,
       ),
-      label: Text(label, style: const TextStyle(fontSize: 10)),
-      backgroundColor: knows
-          ? cs.primaryContainer.withOpacity(0.5)
-          : cs.errorContainer.withOpacity(0.5),
+      label: Text(
+        label,
+        style: TextStyle(
+          fontSize: 10,
+          color: knows ? cs.onPrimaryContainer : cs.onErrorContainer,
+        ),
+      ),
+      backgroundColor: knows ? cs.primaryContainer : cs.errorContainer,
       padding: EdgeInsets.zero,
       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
     );
