@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../parts/parts_provider.dart';
@@ -289,6 +290,31 @@ class _PartnerSwitchTrackerState extends ConsumerState<_PartnerSwitchTracker> {
             ),
           ),
 
+          // Remote Consent des aktuell vorne-seienden Anteils
+          SliverToBoxAdapter(
+            child: currentAsync.when(
+              loading: () => const SizedBox.shrink(),
+              error: (_, __) => const SizedBox.shrink(),
+              data: (current) {
+                if (current == null) return const SizedBox.shrink();
+                final remoteData = activeConnection?.remoteData;
+                if (remoteData == null) return const SizedBox.shrink();
+                try {
+                  final data = jsonDecode(remoteData) as Map<String, dynamic>;
+                  final consents = (data['consent_profiles'] as List? ?? [])
+                      .cast<Map<String, dynamic>>();
+                  final consent = consents
+                      .where((c) => c['part_id'] == current.partId)
+                      .firstOrNull;
+                  if (consent == null) return const SizedBox.shrink();
+                  return _RemoteConsentSummary(consent: consent);
+                } catch (_) {
+                  return const SizedBox.shrink();
+                }
+              },
+            ),
+          ),
+
           // Sync-Button
           SliverToBoxAdapter(
             child: Padding(
@@ -472,6 +498,52 @@ class _ConsentChip extends StatelessWidget {
       backgroundColor: color,
       padding: EdgeInsets.zero,
       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+    );
+  }
+}
+
+/// Zeigt das Consent-Profil eines Remote-Anteils (aus FullSync-remoteData)
+/// mit denselben farbigen Chips wie _ConsentSummary in der Patientenansicht.
+class _RemoteConsentSummary extends StatelessWidget {
+  final Map<String, dynamic> consent;
+
+  const _RemoteConsentSummary({required this.consent});
+
+  @override
+  Widget build(BuildContext context) {
+    String val(String key) => consent[key] as String? ?? 'Unknown';
+
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Consent', style: Theme.of(context).textTheme.titleSmall),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 6,
+            children: [
+              _ConsentChip('Berührung', val('touch_general')),
+              _ConsentChip('Intim', val('touch_intimate')),
+              _ConsentChip('Küssen', val('kiss')),
+              _ConsentChip('Kosenamen', val('pet_names')),
+              _ConsentChip('Sex', val('sexual_activity')),
+              _ConsentChip('Autofahren', val('driving')),
+              _ConsentChip('Alkohol', val('alcohol')),
+              _ConsentChip('Finanzen', val('decisions_financial')),
+              _ConsentChip('Medizin', val('decisions_medical')),
+            ],
+          ),
+          if ((consent['notes'] as String?)?.isNotEmpty == true) ...[
+            const SizedBox(height: 8),
+            Text(
+              consent['notes'] as String,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ],
+        ],
+      ),
     );
   }
 }
