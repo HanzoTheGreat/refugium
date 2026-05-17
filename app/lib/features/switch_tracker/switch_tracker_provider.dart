@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/database/database.dart';
 import '../../../core/database/database_provider.dart';
 import '../../core/sync/sync_service.dart';
+import '../../core/sync/app_mode_provider.dart';
+import '../../core/sync/connection_provider.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 // Lokaler aktueller Anteil – live via Stream
@@ -15,9 +17,20 @@ final currentPartProvider = StreamProvider<SwitchEventsData?>((ref) {
       .watchSingleOrNull();
 });
 
-// Remote aktueller Anteil – live via Stream
+// Remote aktueller Anteil – nur wenn aktive Verbindung existiert
+// UND deren Rolle zur aktuellen App-Mode passt.
+// Verhindert dass partner-gefilterte Daten im Therapeuten-Modus auftauchen
+// und dass Daten ohne Verbindung sichtbar bleiben.
 final remoteCurrentPartProvider = StreamProvider<SwitchEventsData?>((ref) {
   final db = ref.watch(databaseProvider);
+  final mode = ref.watch(activeModeProvider);
+  final activeConn = ref.watch(activeConnectionProvider).asData?.value;
+
+  if (activeConn == null) return Stream.value(null);
+
+  final expectedRole = mode == AppMode.therapist ? 'therapist' : 'partner';
+  if (activeConn.role != expectedRole) return Stream.value(null);
+
   return (db.select(db.switchEvents)
         ..where((t) => t.markedBy.equals('PartnerObservation'))
         ..orderBy([(t) => OrderingTerm.desc(t.timestamp)])
@@ -35,11 +48,19 @@ final switchHistoryProvider = StreamProvider<List<SwitchEventsData>>((ref) {
       .watch();
 });
 
-// Remote History – live via Stream
+// Remote History – nur wenn aktive Verbindung zur Rolle passt
 final remoteSwitchHistoryProvider = StreamProvider<List<SwitchEventsData>>((
   ref,
 ) {
   final db = ref.watch(databaseProvider);
+  final mode = ref.watch(activeModeProvider);
+  final activeConn = ref.watch(activeConnectionProvider).asData?.value;
+
+  if (activeConn == null) return Stream.value([]);
+
+  final expectedRole = mode == AppMode.therapist ? 'therapist' : 'partner';
+  if (activeConn.role != expectedRole) return Stream.value([]);
+
   return (db.select(db.switchEvents)
         ..where((t) => t.markedBy.equals('PartnerObservation'))
         ..orderBy([(t) => OrderingTerm.desc(t.timestamp)])
@@ -71,12 +92,10 @@ class SwitchTrackerNotifier extends AsyncNotifier<SwitchEventsData?> {
           ),
         );
 
-    // Anteilname mitschicken damit Partner ihn anzeigen kann
     final parts = await db.select(db.parts).get();
     final part = parts.where((p) => p.id == partId).firstOrNull;
     final partName = part?.displayName ?? 'Unbekannt';
 
-    // Sync-Event senden
     final partnerDeviceId = await const FlutterSecureStorage(
       aOptions: AndroidOptions(encryptedSharedPreferences: true),
     ).read(key: 'refugium_partner_device_id');

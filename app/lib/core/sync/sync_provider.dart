@@ -22,16 +22,23 @@ final syncProvider = FutureProvider<SyncState>((ref) async {
   );
 
   String? deviceId = await storage.read(key: _deviceIdKey);
+  final idToRegister = deviceId ?? const Uuid().v4();
 
-  if (deviceId == null) {
-    // UUID client-seitig generieren – deviceId ist in diesem Branch per Definition null,
-    // der frühere Cast (deviceId as String) warf immer eine TypeError.
-    final newId = const Uuid().v4();
+  // Immer registrieren – ON CONFLICT DO UPDATE macht es idempotent.
+  // Ohne das schlägt create_invite mit FOREIGN KEY fehl wenn der Server
+  // zwischenzeitlich gewipet wurde (z.B. nach Neuinstallation/Reset).
+  try {
     final client = ref.read(apiClientProvider);
     final publicKey = const Uuid().v4();
-    final result = await client.registerDevice(newId, publicKey);
+    final result = await client.registerDevice(idToRegister, publicKey);
     deviceId = result['device_id'] as String;
     await storage.write(key: _deviceIdKey, value: deviceId);
+  } catch (_) {
+    // Offline oder Server nicht erreichbar – gespeicherte ID weiterverwenden
+    deviceId = idToRegister;
+    if (await storage.read(key: _deviceIdKey) == null) {
+      await storage.write(key: _deviceIdKey, value: deviceId);
+    }
   }
 
   // Keypair beim Start sicherstellen

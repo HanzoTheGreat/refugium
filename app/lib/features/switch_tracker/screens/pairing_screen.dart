@@ -228,7 +228,7 @@ class _PairingScreenState extends ConsumerState<PairingScreen> {
               controller: _displayNameController,
               decoration: const InputDecoration(
                 labelText: 'Name für diese Verbindung',
-                hintText: 'z.B. Mischka, Dr. Müller',
+                hintText: 'z.B. Schatzi, Dr. Müller',
                 border: OutlineInputBorder(),
               ),
             ),

@@ -7,6 +7,7 @@ import 'core/sync/connection_provider.dart';
 import 'core/sync/sync_service.dart' show SyncService, syncServiceProvider;
 import 'core/sync/sync_provider.dart';
 import 'core/sync/notification_service.dart';
+import 'core/theme/app_theme.dart';
 import 'features/parts/screens/parts_screen.dart';
 import 'features/switch_tracker/screens/switch_tracker_screen.dart';
 import 'features/switch_tracker/screens/settings_screen.dart';
@@ -41,13 +42,9 @@ class RefugiumApp extends ConsumerWidget {
     return MaterialApp(
       title: 'Refugium',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF7B9E87),
-          brightness: Brightness.light,
-        ),
-        useMaterial3: true,
-      ),
+      theme: AppTheme.light,
+      darkTheme: AppTheme.dark,
+      themeMode: ThemeMode.system, // Folgt System-Einstellung automatisch
       home: const MainShell(),
     );
   }
@@ -237,35 +234,75 @@ class _MainShellState extends ConsumerState<MainShell> {
     switch (mode) {
       case AppMode.patient:
         return const [
-          NavigationDestination(icon: Icon(Icons.swap_horiz), label: 'Jetzt'),
-          NavigationDestination(icon: Icon(Icons.people), label: 'Anteile'),
-          NavigationDestination(icon: Icon(Icons.emergency), label: 'Notfall'),
-          NavigationDestination(icon: Icon(Icons.contacts), label: 'Kontakte'),
           NavigationDestination(
-            icon: Icon(Icons.medical_information),
+            icon: Icon(Icons.swap_horiz_outlined),
+            selectedIcon: Icon(Icons.swap_horiz),
+            label: 'Jetzt',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.people_outline),
+            selectedIcon: Icon(Icons.people),
+            label: 'Anteile',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.emergency_outlined),
+            selectedIcon: Icon(Icons.emergency),
+            label: 'Notfall',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.contacts_outlined),
+            selectedIcon: Icon(Icons.contacts),
+            label: 'Kontakte',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.medical_information_outlined),
+            selectedIcon: Icon(Icons.medical_information),
             label: 'Medizin',
           ),
           NavigationDestination(
             icon: Icon(Icons.book_outlined),
+            selectedIcon: Icon(Icons.book),
             label: 'Journal',
           ),
         ];
       case AppMode.partner:
         return const [
-          NavigationDestination(icon: Icon(Icons.swap_horiz), label: 'Jetzt'),
-          NavigationDestination(icon: Icon(Icons.emergency), label: 'Notfall'),
+          NavigationDestination(
+            icon: Icon(Icons.swap_horiz_outlined),
+            selectedIcon: Icon(Icons.swap_horiz),
+            label: 'Jetzt',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.emergency_outlined),
+            selectedIcon: Icon(Icons.emergency),
+            label: 'Notfall',
+          ),
           NavigationDestination(
             icon: Icon(Icons.book_outlined),
+            selectedIcon: Icon(Icons.book),
             label: 'Journal',
           ),
         ];
       case AppMode.therapist:
         return const [
-          NavigationDestination(icon: Icon(Icons.swap_horiz), label: 'Jetzt'),
-          NavigationDestination(icon: Icon(Icons.people), label: 'Anteile'),
-          NavigationDestination(icon: Icon(Icons.emergency), label: 'Notfall'),
+          NavigationDestination(
+            icon: Icon(Icons.swap_horiz_outlined),
+            selectedIcon: Icon(Icons.swap_horiz),
+            label: 'Jetzt',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.people_outline),
+            selectedIcon: Icon(Icons.people),
+            label: 'Anteile',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.emergency_outlined),
+            selectedIcon: Icon(Icons.emergency),
+            label: 'Notfall',
+          ),
           NavigationDestination(
             icon: Icon(Icons.book_outlined),
+            selectedIcon: Icon(Icons.book),
             label: 'Journal',
           ),
         ];

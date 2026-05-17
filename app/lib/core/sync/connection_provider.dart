@@ -1,9 +1,14 @@
 import 'dart:io';
 import 'package:drift/drift.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../database/database.dart';
 import '../database/database_provider.dart';
 import '../crypto/crypto_service.dart';
+
+const _storage = FlutterSecureStorage(
+  aOptions: AndroidOptions(encryptedSharedPreferences: true),
+);
 
 final connectionsProvider = StreamProvider<List<ConnectionData>>((ref) {
   final db = ref.watch(databaseProvider);
@@ -56,12 +61,23 @@ Future<void> addConnection(
 
 Future<void> deleteConnection(WidgetRef ref, String connectionId) async {
   final db = ref.read(databaseProvider);
-  // Shared Secret löschen bevor Verbindung gelöscht wird
   final connections = await db.select(db.connections).get();
   final conn = connections.where((c) => c.id == connectionId).firstOrNull;
+
   if (conn != null && !conn.remoteDeviceId.startsWith('pending_')) {
+    // Shared Secret löschen
     await CryptoService.deleteSharedSecret(conn.remoteDeviceId);
+
+    // Storage-Key löschen damit _migrateOldPairing die Verbindung
+    // beim nächsten App-Start nicht wiederherstellt
+    final storedPartnerId = await _storage.read(
+      key: 'refugium_partner_device_id',
+    );
+    if (storedPartnerId == conn.remoteDeviceId) {
+      await _storage.delete(key: 'refugium_partner_device_id');
+    }
   }
+
   await (db.delete(
     db.connections,
   )..where((t) => t.id.equals(connectionId))).go();

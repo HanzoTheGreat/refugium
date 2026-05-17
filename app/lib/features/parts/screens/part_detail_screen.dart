@@ -119,7 +119,9 @@ class PartDetailScreen extends ConsumerWidget {
     );
     if (secondConfirm == true && context.mounted) {
       await ref.read(partsProvider.notifier).deletePart(part.id);
-      if (context.mounted) Navigator.of(context).pop();
+      // Kein manueller pop() – Stream feuert, part == null,
+      // addPostFrameCallback in build() navigiert zurück.
+      // Doppel-pop → schwarzer Screen.
     }
   }
 

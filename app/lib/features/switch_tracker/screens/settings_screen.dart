@@ -3,7 +3,9 @@ import 'package:drift/drift.dart' show Value;
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../../core/backup/backup_service.dart';
+import '../../../core/crypto/crypto_service.dart';
 import '../../../core/sync/app_mode_provider.dart';
 import '../../../core/sync/connection_provider.dart';
 import '../../../core/sync/full_sync_service.dart';
@@ -15,6 +17,10 @@ import '../../../core/database/database_provider.dart';
 import 'pairing_screen.dart';
 
 const _serverUrl = 'https://refugium-sync.duckdns.org';
+
+const _storage = FlutterSecureStorage(
+  aOptions: AndroidOptions(encryptedSharedPreferences: true),
+);
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -31,48 +37,6 @@ class SettingsScreen extends ConsumerWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          // Geräte-Info
-          syncAsync.when(
-            loading: () => const SizedBox.shrink(),
-            error: (_, __) => const SizedBox.shrink(),
-            data: (sync) => Card(
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Gerät',
-                      style: Theme.of(context).textTheme.titleSmall,
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      sync.deviceId,
-                      style: Theme.of(context).textTheme.bodySmall,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        Icon(
-                          sync.isPaired ? Icons.link : Icons.link_off,
-                          size: 16,
-                          color: sync.isPaired ? Colors.green : Colors.grey,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          sync.isPaired ? 'Verbunden' : 'Nicht verbunden',
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-
           // Modus
           Text('Modus', style: Theme.of(context).textTheme.titleSmall),
           const SizedBox(height: 8),
@@ -212,8 +176,6 @@ class SettingsScreen extends ConsumerWidget {
                         ),
                       ),
                     ),
-
-                    // Patient: Daten jetzt senden
                     if (mode == AppMode.patient) ...[
                       const Divider(height: 1),
                       ListTile(
@@ -234,8 +196,6 @@ class SettingsScreen extends ConsumerWidget {
                         },
                       ),
                     ],
-
-                    // Angehörige/Therapeut: Daten beim Patienten anfordern
                     if (mode != AppMode.patient &&
                         activeRemoteDeviceId != null) ...[
                       const Divider(height: 1),
@@ -248,6 +208,28 @@ class SettingsScreen extends ConsumerWidget {
                 ),
               );
             },
+          ),
+          const SizedBox(height: 16),
+
+          // Verbindungen zurücksetzen
+          Text('Zurücksetzen', style: Theme.of(context).textTheme.titleSmall),
+          const SizedBox(height: 8),
+          Card(
+            child: ListTile(
+              leading: Icon(
+                Icons.link_off,
+                color: Theme.of(context).colorScheme.error,
+              ),
+              title: Text(
+                'Alle Verbindungen zurücksetzen',
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
+              subtitle: const Text(
+                'Löscht alle verbundenen Geräte lokal. '
+                'Anteile, Journal und alle anderen Daten bleiben erhalten.',
+              ),
+              onTap: () => _confirmResetConnections(context, ref),
+            ),
           ),
           const SizedBox(height: 16),
 
@@ -290,6 +272,69 @@ class SettingsScreen extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  Future<void> _confirmResetConnections(
+    BuildContext context,
+    WidgetRef ref,
+  ) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Alle Verbindungen zurücksetzen?'),
+        content: const Text(
+          'Alle verbundenen Geräte werden lokal getrennt und '
+          'alle Shared Secrets gelöscht.\n\n'
+          'Anteile, Journal und alle anderen Daten bleiben vollständig erhalten.\n\n'
+          'Die Gegenseite muss danach ebenfalls zurücksetzen und neu verbinden.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Abbrechen'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(ctx).colorScheme.error,
+            ),
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text('Zurücksetzen'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !context.mounted) return;
+
+    final db = ref.read(databaseProvider);
+    final connections = await db.select(db.connections).get();
+
+    // Shared Secrets für alle Verbindungen löschen
+    for (final conn in connections) {
+      if (!conn.remoteDeviceId.startsWith('pending_')) {
+        await CryptoService.deleteSharedSecret(conn.remoteDeviceId);
+      }
+    }
+
+    // Connections-Tabelle leeren
+    await db.delete(db.connections).go();
+
+    // PartnerObservation Switch-Events löschen – kommen von remote,
+    // gehören nicht mehr zum lokalen Datensatz ohne Verbindung
+    await (db.delete(
+      db.switchEvents,
+    )..where((t) => t.markedBy.equals('PartnerObservation'))).go();
+
+    // Storage-Keys löschen
+    await _storage.delete(key: 'refugium_partner_device_id');
+
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Alle Verbindungen wurden zurückgesetzt.'),
+        ),
+      );
+    }
   }
 
   Future<void> _renameConnection(
@@ -375,8 +420,6 @@ class SettingsScreen extends ConsumerWidget {
   }
 }
 
-/// Eigenes StatefulWidget damit der Ladezustand lokal bleibt
-/// und nicht den gesamten Settings-Screen neu baut.
 class _RequestSyncTile extends ConsumerStatefulWidget {
   final String remoteDeviceId;
   final String displayName;
