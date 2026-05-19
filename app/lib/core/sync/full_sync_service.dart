@@ -208,6 +208,11 @@ Map<String, String> consumePendingSyncs() {
   return result;
 }
 
+/// Payload zurück in die Queue wenn Senden fehlgeschlagen ist
+void requeuePendingSync(String deviceId, String payload) {
+  _pendingSyncs[deviceId] = payload;
+}
+
 Future<void> storeRemoteData(
   AppDatabase db,
   String connectionId,

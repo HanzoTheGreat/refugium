@@ -11,6 +11,7 @@ use axum::{
 use futures_util::stream::Stream;
 use sqlx::SqlitePool;
 use std::convert::Infallible;
+use std::time::Duration;
 use tokio::sync::broadcast;
 use tokio_stream::{wrappers::BroadcastStream, StreamExt as _};
 use crate::{models::*, crypto::*, push::send_notification};
@@ -256,5 +257,9 @@ async fn sse_stream(
             _ => None,
         }
     });
-    Sse::new(stream).keep_alive(KeepAlive::default())
+    Sse::new(stream).keep_alive(
+        KeepAlive::new()
+            .interval(Duration::from_secs(10))
+            .text("keep-alive"),
+    )
 }

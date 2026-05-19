@@ -4,6 +4,7 @@ import android.app.*
 import android.content.Context
 import android.content.Intent
 import android.os.IBinder
+import android.os.PowerManager
 import androidx.core.app.NotificationCompat
 import io.flutter.embedding.engine.FlutterEngineCache
 import io.flutter.plugin.common.MethodChannel
@@ -24,16 +25,27 @@ class RefugiumForegroundService : Service() {
         const val SERVER_URL = "https://refugium-sync.duckdns.org"
         const val FLUTTER_ENGINE_ID = "main_engine"
         const val SYNC_CHANNEL = "com.github.hanzothegreat.refugium/sync"
+        // Länger als Server-KeepAlive (10s) aber kurz genug um tote Connections
+        // auf Mobilfunk-NAT zu erkennen (Carrier trennen idle TCP nach 30–90s).
+        const val SSE_READ_TIMEOUT_MS = 45_000
     }
 
     private var sseThread: Thread? = null
     @Volatile private var running = false
+    private var wakeLock: PowerManager.WakeLock? = null
 
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onCreate() {
         super.onCreate()
         createNotificationChannel()
+        // PARTIAL_WAKE_LOCK: CPU bleibt wach, Display kann schlafen.
+        // Ohne WakeLock schläft die CPU auf Mobilfunk und suspendiert den SSE-Read.
+        val pm = getSystemService(Context.POWER_SERVICE) as PowerManager
+        wakeLock = pm.newWakeLock(
+            PowerManager.PARTIAL_WAKE_LOCK,
+            "Refugium:SseWakeLock"
+        ).also { it.acquire() }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -60,6 +72,7 @@ class RefugiumForegroundService : Service() {
     override fun onDestroy() {
         running = false
         sseThread?.interrupt()
+        wakeLock?.takeIf { it.isHeld }?.release()
         super.onDestroy()
     }
 
@@ -89,7 +102,7 @@ class RefugiumForegroundService : Service() {
         val url = URL("$SERVER_URL/api/v1/sse/$deviceId")
         val conn = url.openConnection() as HttpsURLConnection
         conn.connectTimeout = 30_000
-        conn.readTimeout = 0  // Streaming – kein Read-Timeout
+        conn.readTimeout = SSE_READ_TIMEOUT_MS  // Tote Connections auf Mobilfunk-NAT erkennen
         conn.setRequestProperty("Accept", "text/event-stream")
         conn.setRequestProperty("Cache-Control", "no-cache")
 

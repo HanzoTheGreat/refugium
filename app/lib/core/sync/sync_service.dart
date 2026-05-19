@@ -67,20 +67,25 @@ class SyncService {
     await ForegroundServiceChannel.stopService();
   }
 
+  // Ausstehende SwitchEvents die beim ersten Sendeversuch fehlgeschlagen sind.
+  // Format: Liste von {recipientDeviceId, messageType, plainJson}
+  final List<Map<String, String>> _pendingEvents = [];
+
   Future<void> sendSyncEvent({
     required String recipientDeviceId,
     required String messageType,
     required Map<String, dynamic> payload,
   }) async {
     final plainJson = jsonEncode(payload);
-    final encryptedPayload = await CryptoService.encrypt(
-      plainJson,
-      recipientDeviceId,
-    );
 
+    // LAN zuerst versuchen
     if (_localPeers.containsKey(recipientDeviceId)) {
       final address = _localPeers[recipientDeviceId]!;
       try {
+        final encryptedPayload = await CryptoService.encrypt(
+          plainJson,
+          recipientDeviceId,
+        );
         final response = await http
             .post(
               Uri.parse('http://$address/sync'),
@@ -98,8 +103,13 @@ class SyncService {
       }
     }
 
+    // Server-Versuch
     if (_serverUrl != null && _deviceId != null) {
       try {
+        final encryptedPayload = await CryptoService.encrypt(
+          plainJson,
+          recipientDeviceId,
+        );
         final client = ApiClient(baseUrl: _serverUrl!);
         await client.sendMessage(
           senderDeviceId: _deviceId!,
@@ -107,10 +117,18 @@ class SyncService {
           payload: encryptedPayload,
           messageType: messageType,
         );
+        return; // Erfolgreich – nicht queuen
       } catch (e) {
-        print('[SyncService] sendMessage error: $e');
+        print('[SyncService] sendMessage error, queuing for retry: $e');
       }
     }
+
+    // Fehlgeschlagen – in Retry-Queue
+    _pendingEvents.add({
+      'recipient': recipientDeviceId,
+      'messageType': messageType,
+      'plainJson': plainJson,
+    });
   }
 
   void _startServerPolling() {
@@ -147,6 +165,30 @@ class SyncService {
       print('[SyncService] pollServer error: $e');
     }
 
+    // Ausstehende Events aus vorherigen fehlgeschlagenen Sendeversuchen
+    if (_pendingEvents.isNotEmpty && _serverUrl != null && _deviceId != null) {
+      final toRetry = List<Map<String, String>>.from(_pendingEvents);
+      _pendingEvents.clear();
+      for (final event in toRetry) {
+        try {
+          final encryptedPayload = await CryptoService.encrypt(
+            event['plainJson']!,
+            event['recipient']!,
+          );
+          final client = ApiClient(baseUrl: _serverUrl!);
+          await client.sendMessage(
+            senderDeviceId: _deviceId!,
+            recipientDeviceId: event['recipient']!,
+            payload: encryptedPayload,
+            messageType: event['messageType']!,
+          );
+        } catch (e) {
+          _pendingEvents.add(event);
+          print('[SyncService] retry failed, requeued: $e');
+        }
+      }
+    }
+
     if (_db != null) {
       final pending = consumePendingSyncs();
       for (final entry in pending.entries) {
@@ -165,7 +207,9 @@ class SyncService {
             messageType: 'FullSync',
           );
         } catch (e) {
-          print('[SyncService] FullSync send error: $e');
+          // Senden fehlgeschlagen – zurück in die Queue für nächsten Poll
+          requeuePendingSync(recipientDeviceId, payloadJson);
+          print('[SyncService] FullSync send error, requeued: $e');
         }
       }
     }
@@ -365,6 +409,12 @@ class SyncService {
         final partId = data['part_id'] as String? ?? 'remote';
         final partName = data['part_name'] as String? ?? 'Unbekannt';
         final note = data['note'] as String?;
+        // Originalen Timestamp aus dem Payload nutzen, nicht DateTime.now().
+        // Sonst kriegen alle Events die gebündelt ankommen denselben Timestamp.
+        final tsRaw = data['timestamp'] as String?;
+        final eventTimestamp = tsRaw != null
+            ? DateTime.tryParse(tsRaw) ?? DateTime.now()
+            : DateTime.now();
 
         if (_db != null) {
           try {
@@ -374,7 +424,7 @@ class SyncService {
                 .insert(
                   SwitchEventsCompanion.insert(
                     partId: partId,
-                    timestamp: drift.Value(DateTime.now()),
+                    timestamp: drift.Value(eventTimestamp),
                     markedBy: const drift.Value('PartnerObservation'),
                     note: drift.Value(note),
                     remotePartName: drift.Value(partName),
